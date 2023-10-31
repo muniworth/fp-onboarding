@@ -41,6 +41,3 @@ console.log(Pipe.F2(
    Option.DefaultOf(2),
 ))
 ```
-
-Implement a function that partially applies all arguments to Iter, allowing you to call it later with no arguments.
-
