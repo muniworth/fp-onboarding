@@ -13,7 +13,7 @@ for (let i=0; i < xs.length; i++) {
 }
 ```
 
-[Trapping Rainwater](https://leetcode.com/problems/trapping-rain-water/submissions/)
+[Trapping Rainwater](https://leetcode.com/problems/trapping-rain-water/)
 Hint: you need at least 2 passes over the array (forward and back). Remember that Scan returns a longer array than the input.
 
 # Theory
