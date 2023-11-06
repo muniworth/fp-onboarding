@@ -1,39 +1,28 @@
-function lengthOfLongestSubstring(s) {
-    if (s.length === 0) {
-      return 0;
+const scan = <T, U>(
+    list: T[],
+    accumulator: (acc: U, item: T) => U,
+    initialAcc: U
+  ): U[] => {
+    const results: U[] = [];
+    let acc = initialAcc;
+  
+    for (const item of list) {
+      acc = accumulator(acc, item);
+      results.push(acc);
     }
   
-    const charExists = (char, charIndexMap) => charIndexMap.has(char);
+    return results;
+  };
   
-    const updateStart = (char, charIndexMap, start) => {
-      return charExists(char, charIndexMap)
-        ? Math.max(charIndexMap.get(char) + 1, start)
-        : start;
-    };
-  
-    const updateCharIndexMap = (char, charIndexMap, end) => {
-      charIndexMap.set(char, end);
-      return charIndexMap;
-    };
-  
-    const calculateMaxLength = (end, start) => end - start + 1;
-  
-    const result = s.split('').reduce(
-      (state, char) => {
-        const { maxLength, start, charIndexMap, end } = state;
-        const updatedStart = updateStart(char, charIndexMap, start);
-        const updatedCharIndexMap = updateCharIndexMap(char, charIndexMap, end);
-        const updatedMaxLength = Math.max(maxLength, calculateMaxLength(end, updatedStart));
-  
-        return {
-          maxLength: updatedMaxLength,
-          start: updatedStart,
-          charIndexMap: updatedCharIndexMap,
-          end: end + 1,
-        };
-      },
-      { maxLength: 0, start: 0, charIndexMap: new Map(), end: 0 }
-    );
-  
-    return result.maxLength;
-  }
+const lengthOfLongestSubstring = (s: string): number => {
+const charIndexMap: { [char: string]: number } = {};
+
+return Math.max(
+    ...scan(Array.from(s), (substring, char) => {
+    const startIndex = charIndexMap.hasOwnProperty(char) ? charIndexMap[char] + 1 : 0;
+    charIndexMap[char] = substring.length;
+    return substring.slice(startIndex) + char;
+    }, '')
+    .map((substring) => substring.length)
+);
+};
