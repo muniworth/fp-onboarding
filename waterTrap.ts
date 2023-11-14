@@ -1,4 +1,4 @@
-const Scan = <T, U>(
+const ScanSkip1 = <T, U>(
     list: T[],
     accumulator: (acc: U, item: T) => U,
     initialAcc: U
@@ -14,32 +14,33 @@ const Scan = <T, U>(
     return results;
 };
 
-// method-1
-const trap = (height: number[]): number => {
-    const n = height.length;
-    const ml = Scan(height, (max, h) => Math.max(max, h), 0);
-    const mr = Scan([...height].reverse(), (max, h) => Math.max(max, h), 0);
-    mr.reverse();
-    let tw = 0;
-    for (let i = 0; i < n; i++) {
-        const ms = Math.min(ml[i], mr[i]);
-        if (ms > height[i]) {
-            tw += ms - height[i];
-        }
+const ScanBack = <T, U>(
+    list: T[],
+    accumulator: (acc: U, item: T) => U,
+    initialAcc: U
+): U[] => {
+    const results: U[] = [];
+    let acc = initialAcc;
+
+    for (let i = list.length - 1; i >= 0; i--) {
+        const item = list[i];
+        acc = accumulator(acc, item);
+        results.unshift(acc);
     }
 
-    return tw;
+    return results;
 };
 
-// method-2
-const trap2 = (height: number[]): number => {
-    const ml = Scan(height, (max, h) => Math.max(max, h), 0);
-    const mr = Scan([...height].reverse(), (max, h) => Math.max(max, h), 0);
-    mr.reverse();
-    const tw = height.map((h, i) => {
-        const ms = Math.min(ml[i], mr[i]);
-        return ms > h ? ms - h : 0;
-    });
+const zipWith3 = <T, U, V, W>(arr1: T[], arr2: U[], arr3: V[], zipper: (a: T, b: U, c: V) => W): W[] => {
+    return arr1.map((elem, i) => zipper(elem, arr2[i], arr3[i]));
+};
+
+const trap = (height: number[]): number => {
+    const ml = ScanSkip1(height, (max, h) => Math.max(max, h), 0);
+    const mr = ScanBack(height, (max, h) => Math.max(max, h), 0);
+    const tw = zipWith3(height, ml, mr, (h, l, r) => {
+        return Math.min(l, r) > h ? Math.min(l, r) - h : 0;
+    })
 
     return tw.reduce((total, water) => total + water, 0);
-};
+}
