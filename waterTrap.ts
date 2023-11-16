@@ -39,7 +39,8 @@ const trap = (height: number[]): number => {
     const ml = ScanSkip1(height, (max, h) => Math.max(max, h), 0);
     const mr = ScanBack(height, (max, h) => Math.max(max, h), 0);
     const tw = zipWith3(height, ml, mr, (h, l, r) => {
-        return Math.min(l, r) > h ? Math.min(l, r) - h : 0;
+        let m = Math.min(l, r)
+        return m > h ? m - h : 0;
     })
 
     return tw.reduce((total, water) => total + water, 0);
