@@ -17,6 +17,9 @@ function sortParticles(particles: Particle[]): Particle[] {
         }
     });
 
+    // dictionary
+    // gather
+
     return particles;
 }
 
@@ -29,16 +32,25 @@ function sortParticles3(particles: Particle[]): Particle[] {
     return particles.sort((a, b) => particleOrder.indexOf(a) - particleOrder.indexOf(b));
 }
 
+
+
 // problem - 3b
-// method-1
-function sortParticlesB(particles: Particle[]): Particle[] {
+// solution
+type Particle3b = '+' | '-' | 'P';
 
-    return particles.sort((a, b) => (a === 'P' ? 1 : a === '-' ? -1 : 0) - (b === 'P' ? 1 : b === '-' ? -1 : 0));
+function sortParticle(particles: Particle3b[]): Particle3b[] {
+    const indexOfP = particles.indexOf('P');
+
+    // divide array
+    const beforeP = particles.slice(0, indexOfP);
+    const afterP = particles.slice(indexOfP + 1);
+
+    // sort array
+    const sortedBeforeP = beforeP.sort((a, b) => (a === '-' ? 1 : -1));
+    const sortedAfterP = afterP.sort((a, b) => (a === '+' ? 1 : -1));
+
+    // concat
+    return [...sortedBeforeP, 'P', ...sortedAfterP];
 }
 
-//   method-2
-function sortParticlesB2(particles: Particle[]): Particle[] {
-    const particleOrder: Particle[] = ['+', '-', 'P'];
-
-    return particles.sort((a, b) => particleOrder.indexOf(a) - particleOrder.indexOf(b));
-}
+console.log(sortParticle(['-', '+', '-', 'P', '+', '-', '+']));
