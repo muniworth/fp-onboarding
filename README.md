@@ -1,9 +1,9 @@
 # Approach
 Solve problems using a rigorous step-by-step approach:
-1. Contruct a domain model (only relevant unless there's a domain to model, which isn't the case here)
+1. Construct a domain model (only relevant unless there's a domain to model, which isn't the case here).
 2. Identify type signature and the transformation process of getting there (ex. input |> reduce |> reduce, input |> scan, etc.)
 3. Fill out the transformations until you reach a solution
-4. Refactor to use standard library specializations of the transformations. (ex. Sum is a specialized of plus-reduce. Length is a specialization of count-reduce)
+4. Refactor to use standard library specializations of the transformations. (ex. Sum is a specialization of plus-reduce. Length is a specialization of count-reduce)
 
 # Leetcode
 For all problems, you can copy in any standard library function, ex. Scan or Iota. Focus on readability, not performance.
@@ -52,22 +52,15 @@ input: 4// April
 output: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2]
 ```
 
-### 3a
-A list contains 3 types of particles: neutral 'X', positive '+', and negative '-'. We apply a strong positive charge to one of them 'P'. Write code that sorts the particles in response to the new charge.
+### 3
+A list contains 2 types of particles: positive '+' or negative '-'. We select one index 'p' as the anchor point. Write code to gather all negative charges around the anchor point, while pushing the positive charges away. Charges may not cross over the anchor point. Your solution should be linear in time complexity.
 ```
-example 1
-input:  [x, +, -, P, +, -, x]
-output: [+, x, -, P, -, x, +]
-
-example 2
-input:  [x, P, +, -, +, -, x]
-output: [x, P, -, -, x, +, +]
-```
-
-### 3b
-How would your solution change if there were no neutral charges?
-```
-example variant
-input:  [-, +, -, P, +, -, +]
-output: [+, -, -, P, -, +, +]
+example input list:
+[-, +, -, -, +, -, +]
+output for each index:
+[-, -, -, -, +, +, +], p=0, p=1
+[+, -, -, -, -, +, +], p=2
+[+, -, -, -, -, +, +], p=3, p=4
+[+, +, -, -, -, -, +], p=5, p=6
+[+, +, +, -, -, -, -], p=7
 ```
