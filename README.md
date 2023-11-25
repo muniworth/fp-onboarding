@@ -1,9 +1,9 @@
 # Approach
 Solve problems using a rigorous step-by-step approach:
-1. Construct a domain model (only relevant unless there's a domain to model, which isn't the case here).
+1. Construct a domain model (only relevant if there's a domain to model, which isn't the case for Leetcode questions).
 2. Identify type signature and the transformation process of getting there (ex. input |> reduce |> reduce, input |> scan, etc.)
-3. Fill out the transformations until you reach a solution
-4. Refactor to use standard library specializations of the transformations. (ex. Sum is a specialization of plus-reduce. Length is a specialization of count-reduce)
+3. Fill out the transformations until you reach a solution.
+4. Refactor to use standard library specializations of the transformations. (ex. Sum is a specialization of plus-reduce. Length is a specialization of count-reduce).
 
 # Leetcode
 For all problems, you can copy in any standard library function, ex. Scan or Iota. Focus on readability, not performance.
