@@ -1,11 +1,108 @@
 # Approach
+Most developers approach problems by declaring temporary variables and for loops. This is the primitive obsession anti-pattern, and doesn't allow for progress when you get stuck on a difficult problem. It results in unreadable, buggy code.
+
 Solve problems using a rigorous step-by-step approach:
 1. Construct a domain model (only relevant if there's a domain to model, which isn't the case for Leetcode questions).
-2. Identify type signature and the transformation process of getting there (ex. input |> reduce |> reduce, input |> scan, etc.)
-3. Fill out the transformations until you reach a solution.
-4. Refactor to use standard library specializations of the transformations. (ex. Sum is a specialization of plus-reduce. Length is a specialization of count-reduce).
+2. Specify type signature.
+4. Identify type transformation process (ex. input |> reduce |> reduce, input |> scan, etc.)
+5. Implement the transformations until you reach a solution.
+5. Refactor to use standard library specializations of the transformations. (ex. Sum is a specialization of plus-reduce. Length is a specialization of count-reduce).
 
-# Leetcode
+This approach doesn't work for all problems because not all problems require transformations (ex. Leetcode's spiral matrix traversal problem). When it works, it usually results in maintainable code.
+
+# Useful Videos
+### A gentle introduction to declarative programming. Watch part one multiple times (first 34 minutes):
+```
+"C++ Seasoning -- Know Your Algorithms"
+- Sean Parent, 2013
+https://youtu.be/W2tWOdzgXHA
+```
+
+### FP vs AP:
+```
+"Functional vs Array Programming"
+- Conor Hoekstra (Code Report), 2021
+https://youtu.be/UogkQ67d0nY
+
+APL vs BQN vs J vs Q vs NumPy vs Julia vs R
+- Conor Hoekstra (Code Report), 2022
+https://youtu.be/8ynsN4nJxzU
+```
+
+### Defining Functional Programming
+```
+"The Essence of Functional Programming"
+- Richard Feldman, FnConf 2022
+https://www.youtube.com/watch?v=l0ruvPCQh9I
+
+"The Next Paradigm Shift in Programming"
+- Richard Feldman, 2020
+https://youtu.be/6YbK8o9rZfI
+```
+
+### Hexagonal Architecture:
+```
+"Functional architecture - The pits of success"
+- Mark Seemann, NDC Sydney 2016
+https://youtu.be/US8QG9I1XW0
+
+"From Dependency injection to dependency rejection"
+- Mark Seemann, NDC London 2017
+https://youtu.be/cxs7oLGrxQ4
+```
+
+### Domain Driven Design:
+```
+"Getting rid of Option with Sum Types - Is Maybe an Option"
+- The Dev Owl, 2020
+Skip part 1 if you're familiar with Option/Maybe
+Part 2 https://youtu.be/x5RA9gYPhnc
+Part 3 https://youtu.be/YGqEEREMA0k
+```
+
+### Functors and Monads
+Definition 1 (loosely taken from Richard Feldman in the podcast Software Unscripted):
+A monad is a `.then()`-able, i.e. a chainable data structure that takes callbacks
+
+Definition 2 (from Mark Seemann):
+A monad is a functor that can be flattened.
+`Bind === FlatMap === Map >> Flat`
+A functor is a container that you can map over (i.e. inject transform logic into).
+
+```
+"An Introduction to Functors in Javascript"
+- Ijemma Onwuzulike, 2020
+https://youtu.be/XcM39gnqgNc
+
+"Monads are everywhere... Maybe that's bad?"
+Explains Monads and Algebraic Effects (Koka, Unison).
+- Till Schröder
+https://youtu.be/nGhoZzihbHY
+
+"Mo'Problems, Mo'Nads"
+- Kyle Simpson
+https://youtu.be/bg0Wtz3sR9U
+
+"Hitler reacts to functional programming"
+https://youtu.be/ADqLBc1vFwI
+```
+
+### Computation Expressions
+```
+"Computation Expressions Explained | Step-By-Step Tutorial | F# Functional Programming"
+by Ben Gobeil, 2021
+https://youtu.be/pC4ZIeOmgB0
+```
+
+### Combinators (advanced)
+```
+Combinators and when to use point-free style
+"Point-Free or Die: Tacit Programming in Haskell and Beyond"
+by Amar Shah, Strange Loop 2016
+https://youtu.be/seVSlKazsNk
+```
+
+# Leetcode Problems
 For all problems, you can copy in any standard library function, ex. Scan or Iota. Focus on readability, not performance.
 
 [Longest Substring](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
@@ -23,7 +120,7 @@ for (let i=0; i < xs.length; i++) {
 [Trapping Rainwater](https://leetcode.com/problems/trapping-rain-water/)
 Hint: you need at least 2 passes over the array (forward and back). Remember that Scan returns a longer array than the input.
 
-# Additional Problems
+# Custom Problems
 ### 1
 We have several teams of people, each defined as a list of team member names. Write code that returns the size of the largest team.
 ```
