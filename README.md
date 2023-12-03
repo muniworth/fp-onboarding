@@ -1,14 +1,47 @@
-# Approach
-Most developers approach problems by declaring temporary variables and for loops. This is the primitive obsession anti-pattern, and doesn't allow for progress when you get stuck on a difficult problem. It results in unreadable, buggy code.
+# Contents
+[Approach](#approach)
 
-Solve problems using a rigorous step-by-step approach:
+[Example](#example)
+
+[Useful Videos](#useful-videos)
+
+[Leetcode Problems](#leetcode-problems)
+
+[Custom Problems](#custom-problems)
+
+# Approach
+Most developers learn to solve problems by declaring temporary variables and for loops, an antipattern Venkat Subranium calls [Primitive Obession](https://youtu.be/znZlF4uQBN0?t=1047). It doesn't allow for progress when you get stuck on a difficult problem, and results in unreadable, buggy code.
+
+Instead, solve problems using a rigorous step-by-step approach:
 1. Construct a domain model (only relevant if there's a domain to model, which isn't the case for Leetcode questions).
 2. Specify type signature.
-4. Identify type transformation process (ex. input |> reduce |> reduce, input |> scan, etc.)
-5. Implement the transformations until you reach a solution.
-5. Refactor to use standard library specializations of the transformations. (ex. Sum is a specialization of plus-reduce. Length is a specialization of count-reduce).
+3. Write the type transformation pipeline (ex. reduce, scan, etc.)
+4. Solve the problem one step at a time by implementing transformations.
+5. Specialize the transformations using standard library functions. ex. Sum is a specialization of plus-reduce. Length is a specialization of count-reduce.
 
-This approach doesn't work for all problems because not all problems require transformations (ex. Leetcode's spiral matrix traversal problem). When it works, it usually results in maintainable code.
+Using a rigorous approach increases the likelihood of writing maintainable code. Some problems don't require type transformations (ex. Leetcode's spiral matrix traversal), which makes them more difficult.
+
+# Example
+Given a table of numbers, create a total column.
+```
+Step 1
+empty, since there are no domain types to model.
+
+Step 2
+number[][] -> number[]
+
+Step 3
+input
+|> reduce rank2
+
+Step 4
+input
+|> Array.map (fun cs -> Array.reduce (+) cs)
+
+Step 5
+input
+|> Array.map Array.sum
+```
 
 # Useful Videos
 ### A gentle introduction to declarative programming. Watch part one multiple times (first 34 minutes):
