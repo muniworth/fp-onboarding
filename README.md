@@ -43,6 +43,12 @@ input
 |> Array.map Array.sum
 ```
 
+### The 3 Main Higher Order Functions
+<img src="/Media/ConorHoekstra--3_main_higher_order_functions.jpg" height="600px">
+
+### Variations of Reduce
+<img src="/Media/ConorHoekstra--reductions.png" height="400px">
+
 # Useful Videos
 ### A gentle introduction to declarative programming. Watch part one multiple times (first 34 minutes):
 ```
