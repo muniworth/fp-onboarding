@@ -3,11 +3,11 @@
 
 [Example](#example)
 
-[Useful Videos](#useful-videos)
+[Related problems](#related-problems)
 
 [Leetcode Problems](#leetcode-problems)
 
-[Custom Problems](#custom-problems)
+[Other Useful Videos](#other-useful-videos)
 
 # Approach
 Most developers learn to solve problems by declaring temporary variables and for loops, an antipattern Venkat Subranium calls [Primitive Obession](https://youtu.be/znZlF4uQBN0?t=1047). It doesn't allow for progress when you get stuck on a difficult problem, and results in unreadable, buggy code.
@@ -19,7 +19,7 @@ Instead, solve problems using a rigorous step-by-step approach:
 4. Solve the problem one step at a time by implementing transformations.
 5. Specialize the transformations using standard library functions. ex. Sum is a specialization of plus-reduce. Length is a specialization of count-reduce.
 
-Using a rigorous approach increases the likelihood of writing maintainable code. Some problems don't require type transformations (ex. Leetcode's spiral matrix traversal), which makes them more difficult.
+Using a rigorous approach increases the likelihood of writing maintainable code.
 
 # Example
 Given a table of numbers, create a total column.
@@ -44,30 +44,96 @@ input
 ```
 
 ### The 3 Main Higher Order Functions
-<img src="/Media/ConorHoekstra--3_main_higher_order_functions.jpg" height="600px">
+<img src="/Media/ConorHoekstra--3_main_higher_order_functions.jpg" height="500px">
 
 ### Variations of Reduce
-<img src="/Media/ConorHoekstra--reductions.png" height="400px">
+<img src="/Media/ConorHoekstra--reductions.png" height="350px">
 
-# Useful Videos
-### A gentle introduction to declarative programming. Watch part one multiple times (first 34 minutes):
+# Gentle introduction to declarative programming and algorithm intuition
 ```
+*** Watch the first 34 minutes ***
 "C++ Seasoning -- Know Your Algorithms"
 - Sean Parent, 2013
 https://youtu.be/W2tWOdzgXHA
-```
 
-### FP vs AP:
-```
 "Functional vs Array Programming"
 - Conor Hoekstra (Code Report), 2021
 https://youtu.be/UogkQ67d0nY
 
-APL vs BQN vs J vs Q vs NumPy vs Julia vs R
+"APL vs BQN vs J vs Q vs NumPy vs Julia vs R"
 - Conor Hoekstra (Code Report), 2022
 https://youtu.be/8ynsN4nJxzU
+
+"Algorithm Intuition”
+- Conor Hoekstra (Code Report), CppCon 2019
+https://youtu.be/pUEnO6SvAMo (part 1)
+https://youtu.be/sEvYmb3eKsw (part 2)
 ```
 
+### Related problems
+### 1
+We have several teams of people, each defined as a list of team member names. Write code that returns the size of the largest team.
+```
+example 1
+input: [["alice"], ["bob", "charlie"]]
+output: 2
+
+example 2:
+input [["alice", "bob", "charlie"]]
+output: 3
+```
+
+### 2
+We make 1 dollar per month, increasing to 2 dollars per month starting in March. Given a fiscal year start month (numeric, 1-indexed) as input, return an array of our income for each month.
+```
+example 1
+input 1// January
+output [1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+
+example 2
+input: 3// March
+output: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+
+example 3
+input: 4// April
+output: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2]
+```
+
+### 3
+A list contains 2 types of particles: positive '+' or negative '-'. We select one index 'p' as the anchor point. Write code to gather all negative charges around the anchor point, while pushing the positive charges away. Charges may not cross over the anchor point. Your solution should be linear in time complexity.
+```
+example input list:
+[-, +, -, -, +, -, +]
+output for each index:
+[-, -, -, -, +, +, +], p=0
+[-, -, -, -, +, +, +], p=1
+[+, -, -, -, -, +, +], p=2
+[+, -, -, -, -, +, +], p=3
+[+, -, -, -, -, +, +], p=4
+[+, +, -, -, -, -, +], p=5
+[+, +, -, -, -, -, +], p=6
+[+, +, +, -, -, -, -], p=7
+```
+
+# Leetcode Problems
+For all problems, you can copy in any standard library function, ex. Scan or Iota. Focus on readability, not performance.
+
+[Longest Substring](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
+Hint: you should use a library function not provided by JavaScript.
+
+[Duplicate Zeros](https://leetcode.com/problems/duplicate-zeros/)
+The problem says to mutate the input, so solve using a pure function and copy the results over:
+```ts
+const xs2 = duplicateZeros(xs)
+for (let i=0; i < xs.length; i++) {
+   xs[i] = xs2[i]
+}
+```
+
+[Trapping Rainwater](https://leetcode.com/problems/trapping-rain-water/)
+Hint: you need at least 2 passes over the array (forward and back). Remember that Scan returns a longer array than the input.
+
+# Other Useful Videos
 ### Defining Functional Programming
 ```
 "The Essence of Functional Programming"
@@ -139,64 +205,4 @@ Combinators and when to use point-free style
 "Point-Free or Die: Tacit Programming in Haskell and Beyond"
 by Amar Shah, Strange Loop 2016
 https://youtu.be/seVSlKazsNk
-```
-
-# Leetcode Problems
-For all problems, you can copy in any standard library function, ex. Scan or Iota. Focus on readability, not performance.
-
-[Longest Substring](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
-Hint: you should use a library function not provided by JavaScript.
-
-[Duplicate Zeros](https://leetcode.com/problems/duplicate-zeros/)
-The problem says to mutate the input, so solve using a pure function and copy the results over:
-```ts
-const xs2 = duplicateZeros(xs)
-for (let i=0; i < xs.length; i++) {
-   xs[i] = xs2[i]
-}
-```
-
-[Trapping Rainwater](https://leetcode.com/problems/trapping-rain-water/)
-Hint: you need at least 2 passes over the array (forward and back). Remember that Scan returns a longer array than the input.
-
-# Custom Problems
-### 1
-We have several teams of people, each defined as a list of team member names. Write code that returns the size of the largest team.
-```
-example 1
-input: [["alice"], ["bob", "charlie"]]
-output: 2
-
-example 2:
-input [["alice", "bob", "charlie"]]
-output: 3
-```
-
-### 2
-We make 1 dollar per month, increasing to 2 dollars per month starting in March. Given a fiscal year start month (numeric, 1-indexed) as input, return an array of our income for each month.
-```
-example 1
-input 1// January
-output [1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
-
-example 2
-input: 3// March
-output: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
-
-example 3
-input: 4// April
-output: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2]
-```
-
-### 3
-A list contains 2 types of particles: positive '+' or negative '-'. We select one index 'p' as the anchor point. Write code to gather all negative charges around the anchor point, while pushing the positive charges away. Charges may not cross over the anchor point. Your solution should be linear in time complexity.
-```
-example input list:
-[-, +, -, -, +, -, +]
-output for each index:
-[-, -, -, -, +, +, +], p=0, p=1
-[+, -, -, -, -, +, +], p=2
-[+, -, -, -, -, +, +], p=3, p=4
-[+, +, -, -, -, -, +], p=5, p=6
-[+, +, +, -, -, -, -], p=7
 ```
