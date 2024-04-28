@@ -49,6 +49,30 @@ input
 ### Variations of Reduce
 <img src="/Media/ConorHoekstra--reductions.png" height="350px">
 
+### TypeScript Examples
+```
+// From code that converts usage tiers into running charges
+const usageStarts = [0, thresh, ...c.Tiers.map(t => t.UsageOffset + thresh)]
+const usageEnds = [...usageStarts.slice(1), Number.POSITIVE_INFINITY]
+const rates = [c.TierRateFirst, ...c.Tiers.map(t => t.Rate), c.TierRateLast]
+const runningCharges = Scan(
+   Zip3(usageStarts, usageEnds, rates),
+   (s, [us, ue, r]) => s + (ue - us) * r,
+   0,
+)
+
+// Code to render a total row from two subtotals.
+Zip2With(RevTotalsSos1, RevTotalsSos2, Add).map(TdNum(F.MCurrency))
+
+// If a function doesn't exist (ex. Clamp), create it!
+// Non-generic functions should arrange parameter order for partial application
+const scaleUnclamped = r.AdvScaleCharge ?? c.ScaleMinimum
+const min = c.IsMinimum ? c.ScaleMinimum : Number.NEGATIVE_INFINITY
+const max = c.IsMaximum ? c.ScaleMaximum : Number.POSITIVE_INFINITY
+const scale = Clamp(min, max, scaleUnclamped)
+const charge = c.Charge * scale
+```
+
 # Gentle introduction to declarative programming and algorithm intuition
 ```
 *** Watch the first 34 minutes ***
