@@ -43,6 +43,13 @@ input
 |> Array.map Array.sum
 ```
 
+When working with multi-dimensional arrays, it's useful to know the [leading axis convention](https://mlochbaum.github.io/BQN/doc/leading.html).
+|            | Col 1 | Col 2 | Col 3 | Rank 2 Sum |
+| ---------  | ----- | ----- | ----- | ---------- |
+| Row 1      | 1     | 2     | 3     | 6          |
+| Row 2      | 1     | 2     | 3     | 6          |
+| Rank 1 Sum | 2     | 4     | 6     | 12         |
+
 ### The 3 Main Higher Order Functions
 <img src="/Media/ConorHoekstra--3_main_higher_order_functions.jpg" height="500px">
 
@@ -51,6 +58,15 @@ input
 
 ### TypeScript Examples
 ```
+// Expansions (also called unfolds)
+// Iota is a specialization for generating ranges
+// https://aplwiki.com/wiki/Index_Generator
+const years = Iota(yearsCount, yearStart)
+const xsMinutes = Iota((24 * 60) / bucketSize, 0).map(t => t * bucketSize)
+
+// Code to render a total row from two subtotals.
+Zip2With(RevTotalsSos1, RevTotalsSos2, Add).map(TdNum(F.MCurrency))
+
 // From code that converts usage tiers into running charges
 const usageStarts = [0, thresh, ...c.Tiers.map(t => t.UsageOffset + thresh)]
 const usageEnds = [...usageStarts.slice(1), Number.POSITIVE_INFINITY]
@@ -60,9 +76,6 @@ const runningCharges = Scan(
    (s, [us, ue, r]) => s + (ue - us) * r,
    0,
 )
-
-// Code to render a total row from two subtotals.
-Zip2With(RevTotalsSos1, RevTotalsSos2, Add).map(TdNum(F.MCurrency))
 
 // If a function doesn't exist (ex. Clamp), create it!
 // Non-generic functions should arrange parameter order for partial application
