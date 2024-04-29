@@ -5,8 +5,6 @@
 
 [Related problems](#related-problems)
 
-[Leetcode Problems](#leetcode-problems)
-
 [Other Useful Videos](#other-useful-videos)
 
 # Approach
@@ -56,6 +54,17 @@ When working with multi-dimensional arrays, it's useful to know the [leading axi
 ### Variations of Reduce
 <img src="/Media/ConorHoekstra--reductions.png" height="350px">
 
+### Hoogle Translate for FMap
+- Select in C Sharp (LINQ)
+<img src="/Media/ConorHoekstra--hoogle_translate_fmap.png" height="350px">
+
+### Sampling of algorithm names across languages
+```
+"Consistently Inconsistent"
+- Conor Hoekstra (Code Report), Meeting C++ 2019
+https://youtu.be/tsfaE-eDusg
+```
+
 ### TypeScript Examples
 ```
 // Expansions (also called unfolds)
@@ -86,7 +95,7 @@ const scale = Clamp(min, max, scaleUnclamped)
 const charge = c.Charge * scale
 ```
 
-# Gentle introduction to declarative programming and algorithm intuition
+# Algorithm Intuition part 1
 ```
 *** Watch the first 34 minutes ***
 "C++ Seasoning -- Know Your Algorithms"
@@ -100,14 +109,11 @@ https://youtu.be/UogkQ67d0nY
 "APL vs BQN vs J vs Q vs NumPy vs Julia vs R"
 - Conor Hoekstra (Code Report), 2022
 https://youtu.be/8ynsN4nJxzU
-
-"Algorithm Intuition”
-- Conor Hoekstra (Code Report), CppCon 2019
-https://youtu.be/pUEnO6SvAMo (part 1)
-https://youtu.be/sEvYmb3eKsw (part 2)
 ```
 
 ### Related problems
+For all problems, you can copy in any standard library function, ex. Scan or Iota. Focus on readability, not performance.
+
 ### 1
 We have several teams of people, each defined as a list of team member names. Write code that returns the size of the largest team.
 ```
@@ -152,12 +158,11 @@ output for each index:
 [+, +, +, -, -, -, -], p=7
 ```
 
-# Leetcode Problems
-For all problems, you can copy in any standard library function, ex. Scan or Iota. Focus on readability, not performance.
-
+### 4
 [Longest Substring](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
 Hint: you should use a library function not provided by JavaScript.
 
+### 5
 [Duplicate Zeros](https://leetcode.com/problems/duplicate-zeros/)
 The problem says to mutate the input, so solve using a pure function and copy the results over:
 ```ts
@@ -167,8 +172,29 @@ for (let i=0; i < xs.length; i++) {
 }
 ```
 
+# Algorithm Intuition part 2
+```
+"Algorithm Intuition”
+- Conor Hoekstra (Code Report), CppCon 2019
+https://youtu.be/pUEnO6SvAMo (part 1)
+https://youtu.be/sEvYmb3eKsw (part 2)
+```
+
+### Related problems
+### 1
 [Trapping Rainwater](https://leetcode.com/problems/trapping-rain-water/)
 Hint: you need at least 2 passes over the array (forward and back). Remember that Scan returns a longer array than the input.
+
+TODO add a sample problem for zip-transform-reduce
+
+# Algorithm Intuition part 3
+```
+"Better Algorithm Intuition"
+- Conor Hoekstra (Code Report), Meeting C++ 2019
+https://youtu.be/TSZzvo4htTQ
+```
+
+TODO leetcode from the above video
 
 # Other Useful Videos
 ### Defining Functional Programming
@@ -202,14 +228,23 @@ Part 2 https://youtu.be/x5RA9gYPhnc
 Part 3 https://youtu.be/YGqEEREMA0k
 ```
 
+# Functional Programming
 ### Functors and Monads
 Definition 1 (loosely taken from Richard Feldman in the podcast Software Unscripted):
 A monad is a `.then()`-able, i.e. a chainable data structure that takes callbacks
 
 Definition 2 (from Mark Seemann):
-A monad is a functor that can be flattened.
-`Bind === FlatMap === Map >> Flat`
-A functor is a container that you can map over (i.e. inject transform logic into).
+A monad is a functor that can be flattened. A functor is a container that you can map over (i.e. inject transform logic into).
+
+### [Bind](https://fsharpforfunandprofit.com/posts/elevated-world-2/#bind)
+aliases: flatMap, andThen, collect, SelectMany
+
+Equivalent to `FMap >> Flat`
+
+### [Lift](https://fsharpforfunandprofit.com/posts/elevated-world/#return)
+aliases: return, pure, unit, yield, point
+
+Not to be confused with [Lift](https://fsharpforfunandprofit.com/posts/elevated-world/#lift), an alias for FMap. FSharp calls Lift 'return'.
 
 ```
 "An Introduction to Functors in Javascript"
