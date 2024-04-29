@@ -55,7 +55,7 @@ When working with multi-dimensional arrays, it's useful to know the [leading axi
 <img src="/Media/ConorHoekstra--reductions.png" height="350px">
 
 ### Hoogle Translate for FMap
-- Select in C Sharp (LINQ)
+Called `Select` in C Sharp (LINQ).
 <img src="/Media/ConorHoekstra--hoogle_translate_fmap.png" height="350px">
 
 ### Sampling of algorithm names across languages
@@ -196,7 +196,7 @@ https://youtu.be/TSZzvo4htTQ
 
 TODO leetcode from the above video
 
-# Other Useful Videos
+# Functional Programming
 ### Defining Functional Programming
 ```
 "The Essence of Functional Programming"
@@ -208,27 +208,6 @@ https://www.youtube.com/watch?v=l0ruvPCQh9I
 https://youtu.be/6YbK8o9rZfI
 ```
 
-### Hexagonal Architecture:
-```
-"Functional architecture - The pits of success"
-- Mark Seemann, NDC Sydney 2016
-https://youtu.be/US8QG9I1XW0
-
-"From Dependency injection to dependency rejection"
-- Mark Seemann, NDC London 2017
-https://youtu.be/cxs7oLGrxQ4
-```
-
-### Domain Driven Design:
-```
-"Getting rid of Option with Sum Types - Is Maybe an Option"
-- The Dev Owl, 2020
-Skip part 1 if you're familiar with Option/Maybe
-Part 2 https://youtu.be/x5RA9gYPhnc
-Part 3 https://youtu.be/YGqEEREMA0k
-```
-
-# Functional Programming
 ### Functors and Monads
 Definition 1 (loosely taken from Richard Feldman in the podcast Software Unscripted):
 A monad is a `.then()`-able, i.e. a chainable data structure that takes callbacks
@@ -277,4 +256,25 @@ Combinators and when to use point-free style
 "Point-Free or Die: Tacit Programming in Haskell and Beyond"
 by Amar Shah, Strange Loop 2016
 https://youtu.be/seVSlKazsNk
+```
+
+# Other Useful Videos
+### Hexagonal Architecture:
+```
+"Functional architecture - The pits of success"
+- Mark Seemann, NDC Sydney 2016
+https://youtu.be/US8QG9I1XW0
+
+"From Dependency injection to dependency rejection"
+- Mark Seemann, NDC London 2017
+https://youtu.be/cxs7oLGrxQ4
+```
+
+### Domain Driven Design:
+```
+"Getting rid of Option with Sum Types - Is Maybe an Option"
+- The Dev Owl, 2020
+Skip part 1 if you're familiar with Option/Maybe
+Part 2 https://youtu.be/x5RA9gYPhnc
+Part 3 https://youtu.be/YGqEEREMA0k
 ```
