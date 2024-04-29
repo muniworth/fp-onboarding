@@ -174,7 +174,7 @@ for (let i=0; i < xs.length; i++) {
 
 # Algorithm Intuition part 2
 ```
-"Algorithm Intuition”
+"Algorithm Intuition"
 - Conor Hoekstra (Code Report), CppCon 2019
 https://youtu.be/pUEnO6SvAMo (part 1)
 https://youtu.be/sEvYmb3eKsw (part 2)
@@ -185,7 +185,8 @@ https://youtu.be/sEvYmb3eKsw (part 2)
 [Trapping Rainwater](https://leetcode.com/problems/trapping-rain-water/)
 Hint: you need at least 2 passes over the array (forward and back). Remember that Scan returns a longer array than the input.
 
-TODO add a sample problem for zip-transform-reduce
+### 2
+Given two strings, count the number of characters that exactly match between them. There are several elegant solutions, so aim for a memory complexity of O(1).
 
 # Algorithm Intuition part 3
 ```
@@ -256,7 +257,12 @@ Combinators and when to use point-free style
 "Point-Free or Die: Tacit Programming in Haskell and Beyond"
 by Amar Shah, Strange Loop 2016
 https://youtu.be/seVSlKazsNk
+
+"Function Composition in Programming Languages"
+- Conor Hoekstra (Code Report), CppNorth 2023
+https://youtu.be/JELcdZLre3s
 ```
+Question: How does Blackbird relate to Inner Product?
 
 # Other Useful Videos
 ### Hexagonal Architecture:
