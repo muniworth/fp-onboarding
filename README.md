@@ -8,7 +8,7 @@
 [Other Useful Videos](#other-useful-videos)
 
 # Approach
-Most developers learn to solve problems by declaring temporary variables and for loops, an antipattern Venkat Subranium calls [Primitive Obession](https://youtu.be/znZlF4uQBN0?t=1047). It doesn't allow for progress when you get stuck on a difficult problem, and results in unreadable, buggy code.
+Most developers learn to solve problems by declaring temporary variables and for loops, an antipattern Venkat Subramaniam calls [Primitive Obession](https://youtu.be/znZlF4uQBN0?t=1047). It doesn't allow for progress when you get stuck on a difficult problem, and results in unreadable, buggy code.
 
 Instead, solve problems using a rigorous step-by-step approach:
 1. Construct a domain model (only relevant if there's a domain to model, which isn't the case for Leetcode questions).
