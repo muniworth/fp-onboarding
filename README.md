@@ -19,6 +19,9 @@ Instead, solve problems using a rigorous step-by-step approach:
 
 Using a rigorous approach increases the likelihood of writing maintainable code.
 
+### Specializations of [Mismatch](https://en.cppreference.com/w/cpp/algorithm/mismatch)
+<img src="/Media/ConorHoekstra--specializations.png" height="150px">
+
 # Example
 Given a table of numbers, create a total column.
 ```
@@ -40,9 +43,6 @@ Step 5
 input
 |> Array.map Array.sum
 ```
-
-### Specializations of [Mismatch](https://en.cppreference.com/w/cpp/algorithm/mismatch)
-<img src="/Media/ConorHoekstra--specializations.png" height="125px">
 
 # Array Rank
 When working with multi-dimensional arrays, it's useful to know the leading axis convention. We count arrays from the outside in, and apply functions across a specific rank. In [array languages]((https://mlochbaum.github.io/BQN/doc/leading.html)) that follow this convention, omitting the rank modifier defaults to rank 1.
@@ -185,12 +185,10 @@ output for each index:
 [+, +, +, -, -, -, -], p=7
 ```
 
-### 4
-[Longest Substring](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
+### 4 [Longest Substring](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
 Hint: you should use a library function not provided by JavaScript.
 
-### 5
-[Duplicate Zeros](https://leetcode.com/problems/duplicate-zeros/)
+### 5 [Duplicate Zeros](https://leetcode.com/problems/duplicate-zeros/)
 The problem says to mutate the input, so solve using a pure function and copy the results over:
 ```ts
 const xs2 = duplicateZeros(xs)
@@ -208,8 +206,7 @@ https://youtu.be/sEvYmb3eKsw (part 2)
 ```
 
 ### Related problems
-### 1
-[Trapping Rainwater](https://leetcode.com/problems/trapping-rain-water/)
+### 1 [Trapping Rainwater](https://leetcode.com/problems/trapping-rain-water/)
 Hint: you need at least 2 passes over the array (forward and back). Remember that Scan returns a longer array than the input.
 
 ### 2
@@ -222,7 +219,20 @@ Given two strings, count the number of characters that exactly match between the
 https://youtu.be/TSZzvo4htTQ
 ```
 
-TODO leetcode from the above video
+### 1 [973. K Closest Points to Origin](https://leetcode.com/problems/k-closest-points-to-origin/description/)
+
+### 2 [977. Squares of a Sorted Array](https://leetcode.com/problems/squares-of-a-sorted-array)
+
+### 3 Element Repeated Once (Variation of [961.](https://leetcode.com/problems/n-repeated-element-in-size-2n-array))
+In an array of size N, there are N-1 unique values. Return the duplicated value.
+
+```
+example
+input: [2,1,4,5,3,2]
+output: 2
+```
+
+### 4 [917. Reverse Only Letters](https://leetcode.com/problems/reverse-only-letters)
 
 # Functional Programming
 ### Defining Functional Programming
