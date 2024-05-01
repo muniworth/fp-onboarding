@@ -5,6 +5,8 @@
 
 [Array Rank](#array-rank)
 
+[Algorithm Names](#algorithm-names)
+
 [In TypeScript](#typescript-examples)
 
 [Part 1](#algorithm-intuition-part-1)
@@ -79,6 +81,14 @@ input |> Array.map Array.sum
 
 Note that `SumRank1` is equivalent to `Transpose >> SumRank2`.
 
+# Algorithm Names
+### Sampling of algorithm names across languages
+```
+"Consistently Inconsistent"
+- Conor Hoekstra (Code Report), Meeting C++ 2019
+https://youtu.be/tsfaE-eDusg
+```
+
 ### Hoogle Translate for FMap
 <img src="/Media/ConorHoekstra--hoogle_translate_fmap.png" height="350px">
 
@@ -93,14 +103,7 @@ Note that `SumRank1` is equivalent to `Transpose >> SumRank2`.
 
 - JavaScript has `.reduce` (which is actually a reduceLeft) and `.reduceRight`.
 
-### Sampling of algorithm names across languages
-```
-"Consistently Inconsistent"
-- Conor Hoekstra (Code Report), Meeting C++ 2019
-https://youtu.be/tsfaE-eDusg
-```
-
-### TypeScript Examples
+# TypeScript Examples
 ```
 // Expansions (also called unfolds)
 // Iota is a specialization for generating ranges
