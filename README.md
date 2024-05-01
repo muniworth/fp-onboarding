@@ -69,14 +69,18 @@ input |> Array.map Array.sum
 Note that `SumRank1` is equivalent to `Transpose >> SumRank2`.
 
 ### Hoogle Translate for FMap
-Called `Select` in C Sharp (LINQ).
 <img src="/Media/ConorHoekstra--hoogle_translate_fmap.png" height="350px">
+
+- Called `.Select` in C Sharp (LINQ).
+- Called `.map` in JavaScript.
 
 ### The 3 Main Higher Order Functions
 <img src="/Media/ConorHoekstra--3_main_higher_order_functions.jpg" height="500px">
 
 ### Variations of Reduce
 <img src="/Media/ConorHoekstra--reductions.png" height="350px">
+
+- JavaScript has `.reduce` (which is actually a reduceLeft) and `.reduceRight`.
 
 ### Sampling of algorithm names across languages
 ```
