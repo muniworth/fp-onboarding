@@ -41,6 +41,9 @@ input
 |> Array.map Array.sum
 ```
 
+### Specializations of [Mismatch](https://en.cppreference.com/w/cpp/algorithm/mismatch)
+<img src="/Media/ConorHoekstra--specializations.png" height="125px">
+
 # Array Rank
 When working with multi-dimensional arrays, it's useful to know the leading axis convention. We count arrays from the outside in, and apply functions across a specific rank. In [array languages]((https://mlochbaum.github.io/BQN/doc/leading.html)) that follow this convention, omitting the rank modifier defaults to rank 1.
 |               | Col 1 | Col 2 | Col 3 | Rank 2 Sum | Rank 2 Length |
