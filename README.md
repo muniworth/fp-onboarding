@@ -41,22 +41,42 @@ input
 |> Array.map Array.sum
 ```
 
-When working with multi-dimensional arrays, it's useful to know the [leading axis convention](https://mlochbaum.github.io/BQN/doc/leading.html).
-|            | Col 1 | Col 2 | Col 3 | Rank 2 Sum |
-| ---------  | ----- | ----- | ----- | ---------- |
-| Row 1      | 1     | 2     | 3     | 6          |
-| Row 2      | 1     | 2     | 3     | 6          |
-| Rank 1 Sum | 2     | 4     | 6     | 12         |
+# Array Rank
+When working with multi-dimensional arrays, it's useful to know the leading axis convention. We count arrays from the outside in, and apply functions across a specific rank. In [array languages]((https://mlochbaum.github.io/BQN/doc/leading.html)) that follow this convention, omitting the rank modifier defaults to rank 1.
+|               | Col 1 | Col 2 | Col 3 | Rank 2 Sum | Rank 2 Length |
+| ------------- | ----- | ----- | ----- | ---------- | ------------- |
+| Row 1         | 1     | 2     | 3     | 6          | 3             |
+| Row 2         | 1     | 2     | 3     | 6          | 3             |
+| Rank 1 Sum    | 2     | 4     | 6     |            |               |
+| Rank 1 Length | 2     | 2     | 2     |            |               |
+
+For functions that operate on arrays (ex. length), each increase in rank adds one additional FMap before calling the function:
+```
+// rank 1
+input |> Array.length
+// rank 2
+input |> Array.map Array.length
+```
+
+When acting on cells, you can index across them (for brevity this code assumes a rectangular, non-empty array).
+```
+// rank 1
+input.[0] |> Array.mapi (fun i _ -> input |> Array.map (Array.item i) |> Array.sum)
+// rank 2
+input |> Array.map Array.sum
+```
+
+Note that `SumRank1` is equivalent to `Transpose >> SumRank2`.
+
+### Hoogle Translate for FMap
+Called `Select` in C Sharp (LINQ).
+<img src="/Media/ConorHoekstra--hoogle_translate_fmap.png" height="350px">
 
 ### The 3 Main Higher Order Functions
 <img src="/Media/ConorHoekstra--3_main_higher_order_functions.jpg" height="500px">
 
 ### Variations of Reduce
 <img src="/Media/ConorHoekstra--reductions.png" height="350px">
-
-### Hoogle Translate for FMap
-Called `Select` in C Sharp (LINQ).
-<img src="/Media/ConorHoekstra--hoogle_translate_fmap.png" height="350px">
 
 ### Sampling of algorithm names across languages
 ```
