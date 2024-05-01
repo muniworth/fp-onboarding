@@ -3,7 +3,15 @@
 
 [Example](#example)
 
-[Related problems](#related-problems)
+[Array Rank](#array-rank)
+
+[In TypeScript](#typescript-examples)
+
+[Part 1](#algorithm-intuition-part-1)
+
+[Part 2](#algorithm-intuition-part-2)
+
+[Part 3](#algorithm-intuition-part-3)
 
 [Other Useful Videos](#other-useful-videos)
 
@@ -218,7 +226,7 @@ Given two strings, count the number of characters that exactly match between the
 - Conor Hoekstra (Code Report), Meeting C++ 2019
 https://youtu.be/TSZzvo4htTQ
 ```
-
+### Related problems
 ### 1 [973. K Closest Points to Origin](https://leetcode.com/problems/k-closest-points-to-origin/description/)
 
 ### 2 [977. Squares of a Sorted Array](https://leetcode.com/problems/squares-of-a-sorted-array)
