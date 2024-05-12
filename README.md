@@ -257,17 +257,34 @@ https://www.youtube.com/watch?v=l0ruvPCQh9I
 https://youtu.be/6YbK8o9rZfI
 ```
 
-### Functors and Monads
-Definition 1 (loosely taken from Richard Feldman in the podcast Software Unscripted):
-A monad is a `.then()`-able, i.e. a chainable data structure that takes callbacks
+### Functors
+A functor is a container that you can map over (i.e. inject transform logic into).
+```
+type functor = {
+   // aliases: Fmap, Map, Select
+   fmap: M<A> -> (A -> B) -> M<B>
+}
 
-Definition 2 (from Mark Seemann):
-A monad is a functor that can be flattened. A functor is a container that you can map over (i.e. inject transform logic into).
+"An Introduction to Functors in Javascript"
+- Ijemma Onwuzulike, 2020
+https://youtu.be/XcM39gnqgNc
+```
+
+### Monads
+Definition 1 (from Mark Seemann):
+A monad is a functor that can be flattened.
+
+Definition 2 (loosely taken from Richard Feldman in the podcast Software Unscripted):
+A monad is a `.then()`-able, i.e. a chainable data structure that takes callbacks
+```
+type monad = functor & {
+   // aliases: Bind, FlatMap, Collect, Selectmany, Chain, Then
+   // Equivalent to `FMap >> Flat`
+   bind: M<A> -> (A -> M<B>) -> M<B>
+}
+```
 
 ### [Bind](https://fsharpforfunandprofit.com/posts/elevated-world-2/#bind)
-aliases: flatMap, andThen, collect, SelectMany
-
-Equivalent to `FMap >> Flat`
 
 ### [Lift](https://fsharpforfunandprofit.com/posts/elevated-world/#return)
 aliases: return, pure, unit, yield, point
@@ -275,10 +292,6 @@ aliases: return, pure, unit, yield, point
 Not to be confused with [Lift](https://fsharpforfunandprofit.com/posts/elevated-world/#lift), an alias for FMap. FSharp calls Lift 'return'.
 
 ```
-"An Introduction to Functors in Javascript"
-- Ijemma Onwuzulike, 2020
-https://youtu.be/XcM39gnqgNc
-
 "Monads are everywhere... Maybe that's bad?"
 Explains Monads and Algebraic Effects (Koka, Unison).
 - Till Schröder
