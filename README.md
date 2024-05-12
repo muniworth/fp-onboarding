@@ -15,6 +15,8 @@
 
 [Part 3](#algorithm-intuition-part-3)
 
+[Functional Programming](#functional-programming)
+
 [Other Useful Videos](#other-useful-videos)
 
 # Approach
