@@ -7,8 +7,6 @@
 
 [Algorithm Names](#algorithm-names)
 
-[In TypeScript](#typescript-examples)
-
 [Part 1](#algorithm-intuition-part-1)
 
 [Part 2](#algorithm-intuition-part-2)
@@ -17,7 +15,11 @@
 
 [Functional Programming](#functional-programming)
 
-[Other Useful Videos](#other-useful-videos)
+[Combinators](#combinators)
+
+[Hexagonal Architecture](#hexagonal-architecture)
+
+[Domain Driven Design](#domain-driven-design)
 
 # Approach
 Most developers learn to solve problems by declaring temporary variables and for loops, an antipattern Venkat Subramaniam calls [Primitive Obession](https://youtu.be/znZlF4uQBN0?t=1047). It doesn't allow for progress when you get stuck on a difficult problem, and results in unreadable, buggy code.
@@ -25,7 +27,7 @@ Most developers learn to solve problems by declaring temporary variables and for
 Instead, solve problems using a rigorous step-by-step approach:
 1. Construct a domain model (only relevant if there's a domain to model, which isn't the case for Leetcode questions).
 2. Specify type signature.
-3. Write the type transformation pipeline (ex. reduce, scan, etc.)
+3. Write the type transformation pipeline (expand, transform, reduce)
 4. Solve the problem one step at a time by implementing transformations.
 5. Specialize the transformations using standard library functions. ex. Sum is a specialization of plus-reduce. Length is a specialization of count-reduce.
 
@@ -105,37 +107,8 @@ https://youtu.be/tsfaE-eDusg
 
 - JavaScript has `.reduce` (which is actually a reduceLeft) and `.reduceRight`.
 
-# TypeScript Examples
-```
-// Expansions (also called unfolds)
-// Iota is a specialization for generating ranges
-// https://aplwiki.com/wiki/Index_Generator
-const years = Iota(yearsCount, yearStart)
-const xsMinutes = Iota((24 * 60) / bucketSize, 0).map(t => t * bucketSize)
-
-// Code to render a total row from two subtotals.
-Zip2With(RevTotalsSos1, RevTotalsSos2, Add).map(TdNum(F.MCurrency))
-
-// From code that converts usage tiers into running charges
-const usageStarts = [0, thresh, ...c.Tiers.map(t => t.UsageOffset + thresh)]
-const usageEnds = [...usageStarts.slice(1), Number.POSITIVE_INFINITY]
-const rates = [c.TierRateFirst, ...c.Tiers.map(t => t.Rate), c.TierRateLast]
-const runningCharges = Scan(
-   Zip3(usageStarts, usageEnds, rates),
-   (s, [us, ue, r]) => s + (ue - us) * r,
-   0,
-)
-
-// If a function doesn't exist (ex. Clamp), create it!
-// Non-generic functions should arrange parameter order for partial application
-const scaleUnclamped = r.AdvScaleCharge ?? c.ScaleMinimum
-const min = c.IsMinimum ? c.ScaleMinimum : Number.NEGATIVE_INFINITY
-const max = c.IsMaximum ? c.ScaleMaximum : Number.POSITIVE_INFINITY
-const scale = Clamp(min, max, scaleUnclamped)
-const charge = c.Charge * scale
-```
-
 # Algorithm Intuition part 1
+For part 1, watch the videos before solving the problems. For other parts, solve the problems first. For all problems, you can copy in any standard library function, ex. Scan or Iota. Focus on readability, not performance.
 ```
 *** Watch the first 34 minutes ***
 "C++ Seasoning -- Know Your Algorithms"
@@ -151,10 +124,7 @@ https://youtu.be/UogkQ67d0nY
 https://youtu.be/8ynsN4nJxzU
 ```
 
-### Related problems
-For all problems, you can copy in any standard library function, ex. Scan or Iota. Focus on readability, not performance.
-
-### 1
+### Problem 1
 We have several teams of people, each defined as a list of team member names. Write code that returns the size of the largest team.
 ```
 example 1
@@ -166,7 +136,7 @@ input [["alice", "bob", "charlie"]]
 output: 3
 ```
 
-### 2
+### Problem 2
 We make 1 dollar per month, increasing to 2 dollars per month starting in March. Given a fiscal year start month (numeric, 1-indexed) as input, return an array of our income for each month.
 ```
 example 1
@@ -182,7 +152,7 @@ input: 4// April
 output: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2]
 ```
 
-### 3
+### Problem 3
 A list contains 2 types of particles: positive '+' or negative '-'. We select one index 'p' as the anchor point. Write code to gather all negative charges around the anchor point, while pushing the positive charges away. Charges may not cross over the anchor point. Your solution should be linear in time complexity.
 ```
 example input list:
@@ -198,10 +168,10 @@ output for each index:
 [+, +, +, -, -, -, -], p=7
 ```
 
-### 4 [Longest Substring](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
+### Problem 4 [Longest Substring](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
 Hint: you should use a library function not provided by JavaScript.
 
-### 5 [Duplicate Zeros](https://leetcode.com/problems/duplicate-zeros/)
+### Problem 5 [Duplicate Zeros](https://leetcode.com/problems/duplicate-zeros/)
 The problem says to mutate the input, so solve using a pure function and copy the results over:
 ```ts
 const xs2 = duplicateZeros(xs)
@@ -218,12 +188,11 @@ https://youtu.be/pUEnO6SvAMo (part 1)
 https://youtu.be/sEvYmb3eKsw (part 2)
 ```
 
-### Related problems
-### 1 [Trapping Rainwater](https://leetcode.com/problems/trapping-rain-water/)
+### Problem 1 [Trapping Rainwater](https://leetcode.com/problems/trapping-rain-water/)
 Hint: you need at least 2 passes over the array (forward and back). Remember that Scan returns a longer array than the input.
 
-### 2
-Given two strings, count the number of characters that exactly match between them. There are several elegant solutions, so aim for a memory complexity of O(1).
+### Problem 2
+(TODO problem description isn't clear enough) Given two strings, count the number of characters that exactly match between them. There are several elegant solutions, so aim for a memory complexity of O(1).
 
 # Algorithm Intuition part 3
 ```
@@ -232,11 +201,11 @@ Given two strings, count the number of characters that exactly match between the
 https://youtu.be/TSZzvo4htTQ
 ```
 ### Related problems
-### 1 [973. K Closest Points to Origin](https://leetcode.com/problems/k-closest-points-to-origin/description/)
+### Problem 1 [973. K Closest Points to Origin](https://leetcode.com/problems/k-closest-points-to-origin/description/)
 
-### 2 [977. Squares of a Sorted Array](https://leetcode.com/problems/squares-of-a-sorted-array)
+### Problem 2 [977. Squares of a Sorted Array](https://leetcode.com/problems/squares-of-a-sorted-array)
 
-### 3 Element Repeated Once (Variation of [961.](https://leetcode.com/problems/n-repeated-element-in-size-2n-array))
+### Problem 3 Element Repeated Once (Variation of [961.](https://leetcode.com/problems/n-repeated-element-in-size-2n-array))
 In an array of size N, there are N-1 unique values. Return the duplicated value.
 
 ```
@@ -245,7 +214,7 @@ input: [2,1,4,5,3,2]
 output: 2
 ```
 
-### 4 [917. Reverse Only Letters](https://leetcode.com/problems/reverse-only-letters)
+### Problem 4 [917. Reverse Only Letters](https://leetcode.com/problems/reverse-only-letters)
 
 # Functional Programming
 ### Defining Functional Programming
@@ -314,7 +283,7 @@ by Ben Gobeil, 2021
 https://youtu.be/pC4ZIeOmgB0
 ```
 
-### Combinators (advanced)
+# [Combinators](#combinators)
 ```
 Combinators and when to use point-free style
 "Point-Free or Die: Tacit Programming in Haskell and Beyond"
@@ -327,8 +296,7 @@ https://youtu.be/JELcdZLre3s
 ```
 Question: How does Blackbird relate to Inner Product?
 
-# Other Useful Videos
-### Hexagonal Architecture:
+# [Hexagonal Architecture](#hexagonal-architecture)
 ```
 "Functional architecture - The pits of success"
 - Mark Seemann, NDC Sydney 2016
@@ -339,7 +307,7 @@ https://youtu.be/US8QG9I1XW0
 https://youtu.be/cxs7oLGrxQ4
 ```
 
-### Domain Driven Design:
+# [Domain Driven Design](#domain-driven-design)
 ```
 "Getting rid of Option with Sum Types - Is Maybe an Option"
 - The Dev Owl, 2020
