@@ -59,9 +59,9 @@ https://youtu.be/tsfaE-eDusg
 
 Supplying an identity as the initial value keeps the type signature simple `A[] -> A`. JavaScript and FSharp can both throw if you don't provide an initial value, unlike APL which infers the identity. You can change the folder and initial value to transform the output type `A[] -> B`, but this increases code complexity.
 
-Always use the most specialized form of an algorithm possible. There are exceptions to this rule, ex. `+/` in APL is already quite terse, so defining `Sum` wouldn't make sense.
+### Specializations
+Always use the most specialized form of an algorithm possible. There are exceptions to this rule, ex. `+/` in APL is already quite terse, so defining `Sum` wouldn't make sense. Function specializations usually form a tree, ex. this figure for [Mismatch](https://en.cppreference.com/w/cpp/algorithm/mismatch)
 
-### Specializations of [Mismatch](https://en.cppreference.com/w/cpp/algorithm/mismatch)
 <img src="/Media/ConorHoekstra--specializations.png" height="150px">
 
 # Exercises
