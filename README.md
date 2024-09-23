@@ -1,4 +1,4 @@
-# Approach
+## Approach
 Most developers learn to solve problems by declaring temporary variables and for loops, an anti-pattern Venkat Subramaniam calls [Primitive Obession](https://youtu.be/znZlF4uQBN0?t=1047). It doesn't allow for progress when you get stuck on a difficult problem, and results in unreadable, buggy code.
 
 Instead, solve problems using a rigorous step-by-step approach:
@@ -10,7 +10,7 @@ Instead, solve problems using a rigorous step-by-step approach:
 
 Using a rigorous approach increases the likelihood of writing maintainable code.
 
-# Example
+## Example
 Given a table of numbers, create a total column.
 ```
 Step 1
@@ -32,13 +32,13 @@ input
 |> Array.map Array.sum
 ```
 
-[Algorithm Intuition](1_Algorithm_Intuition.md)
+## [Algorithm Intuition](1_Algorithm_Intuition.md)
 
-[Domain Driven Design](2_Domain_Driven_Design.md)
+## [Domain Driven Design](2_Domain_Driven_Design.md)
 
-[Functional Programming](#3_Functional_Programming.md)
+## [Functional Programming](3_Functional_Programming.md)
 
-# [Hexagonal Architecture](#hexagonal-architecture)
+## [Hexagonal Architecture](#hexagonal-architecture)
 ```
 "Functional architecture - The pits of success"
 - Mark Seemann, NDC Sydney 2016
@@ -49,7 +49,7 @@ https://youtu.be/US8QG9I1XW0
 https://youtu.be/cxs7oLGrxQ4
 ```
 
-# [Combinators](#combinators)
+## [Combinators](#combinators)
 ```
 Combinators and when to use point-free style
 "Point-Free or Die: Tacit Programming in Haskell and Beyond"
