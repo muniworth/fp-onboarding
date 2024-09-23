@@ -36,9 +36,6 @@ input |> Array.map Array.sum
 Note that `SumRank1` is equivalent to `Transpose >> SumRank2`.
 
 # Algorithm Names
-### Specializations of [Mismatch](https://en.cppreference.com/w/cpp/algorithm/mismatch)
-<img src="/Media/ConorHoekstra--specializations.png" height="150px">
-
 ### Sampling of algorithm names across languages
 ```
 "Consistently Inconsistent"
@@ -58,7 +55,14 @@ https://youtu.be/tsfaE-eDusg
 ### Variations of Reduce
 <img src="/Media/ConorHoekstra--reductions.png" height="350px">
 
-- JavaScript has `.reduce` (which is actually a reduceLeft) and `.reduceRight`.
+`reduceLeft` and `reduceRight` are often called "associative-only reduction" since they don't commute. JavaScript has `.reduce` (which is actually a reduceLeft) and `.reduceRight`.
+
+Supplying an identity as the initial value keeps the type signature simple `A[] -> A`. JavaScript and FSharp can both throw if you don't provide an initial value, unlike APL which infers the identity. You can change the folder and initial value to transform the output type `A[] -> B`, but this increases code complexity.
+
+Always use the most specialized form of an algorithm possible. There are exceptions to this rule, ex. `+/` in APL is already quite terse, so defining `Sum` wouldn't make sense.
+
+### Specializations of [Mismatch](https://en.cppreference.com/w/cpp/algorithm/mismatch)
+<img src="/Media/ConorHoekstra--specializations.png" height="150px">
 
 # Exercises
 For part 1, watch the videos before solving the problems. For other parts, solve the problems first. For all problems, you can copy in any standard library function, ex. Scan or Iota. Focus on readability, not performance.
