@@ -40,7 +40,7 @@ type monad = functor & {
 ### [Bind](https://fsharpforfunandprofit.com/posts/elevated-world-2/#bind)
 Handle the "happy path" for code last and with type safety, ex.
 ```
-parse1 ThingToParse
+parse1 thingToParse
 |> Result.Bind parse2
 |> Result.Filter predicate
 |> Result.Map doSomethingUseful
