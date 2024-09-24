@@ -1,10 +1,4 @@
-> [!IMPORTANT]
-> Intro Video - Watch the first 34 minutes
-```
-"C++ Seasoning -- Know Your Algorithms"
-- Sean Parent, 2013
-https://youtu.be/W2tWOdzgXHA
-```
+[Intro Video](#intro-video)
 
 [Algorithm Names](#algorithm-names)
 
@@ -15,6 +9,15 @@ https://youtu.be/W2tWOdzgXHA
 [Exercises Part 2](#exercises-part-2)
 
 [Exercises Part 3](#exercises-part-3)
+
+# Intro Video
+> [!IMPORTANT]
+> Watch the first 34 minutes
+```
+"C++ Seasoning -- Know Your Algorithms"
+- Sean Parent, 2013
+https://youtu.be/W2tWOdzgXHA
+```
 
 # Algorithm Names
 ### Sampling of algorithm names across languages
