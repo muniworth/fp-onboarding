@@ -89,11 +89,11 @@ https://youtu.be/8ynsN4nJxzU
 ### Problem 1
 We have several teams of people, each defined as a list of team member names. Write code that returns the size of the largest team.
 ```
-example 1
+// example 1
 input: [["alice"], ["bob", "charlie"]]
 output: 2
 
-example 2:
+// example 2:
 input [["alice", "bob", "charlie"]]
 output: 3
 ```
@@ -101,15 +101,15 @@ output: 3
 ### Problem 2
 We make 1 dollar per month, increasing to 2 dollars per month starting in March. Given a fiscal year start month (numeric, 1-indexed) as input, return an array of our income for each month.
 ```
-example 1
+// example 1
 input 1// January
 output [1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 
-example 2
+// example 2
 input: 3// March
 output: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 
-example 3
+// example 3
 input: 4// April
 output: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2]
 ```
@@ -147,7 +147,14 @@ for (let i=0; i < xs.length; i++) {
 Hint: you need at least 2 passes over the array (forward and back). Remember that Scan returns a longer array than the input.
 
 ### Problem 2
-(TODO problem description isn't clear enough) Given two strings, count the number of characters that exactly match between them. There are several elegant solutions, so aim for a memory complexity of O(1).
+Given two strings, count the number of characters that exactly match between them. What algorithm solves this with memory complexity of O(1)?
+
+```
+// example
+input 1: "abcd"
+input 2: "abzd"
+output: 3
+```
 
 ```
 "Algorithm Intuition"
@@ -165,7 +172,7 @@ https://youtu.be/sEvYmb3eKsw (part 2)
 In an array of size N, there are N-1 unique values. Return the duplicated value.
 
 ```
-example
+// example
 input: [2,1,4,5,3,2]
 output: 2
 ```
