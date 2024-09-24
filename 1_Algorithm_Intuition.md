@@ -1,39 +1,20 @@
-[Array Rank](#array-rank)
+> [!IMPORTANT]
+> Intro Video - Watch the first 34 minutes
+```
+"C++ Seasoning -- Know Your Algorithms"
+- Sean Parent, 2013
+https://youtu.be/W2tWOdzgXHA
+```
 
 [Algorithm Names](#algorithm-names)
+
+[Array Rank](#array-rank)
 
 [Exercises Part 1](#exercises-part-1)
 
 [Exercises Part 2](#exercises-part-2)
 
 [Exercises Part 3](#exercises-part-3)
-
-# Array Rank
-When working with multi-dimensional arrays, it's useful to know the leading axis convention. We count arrays from the outside in, and apply functions across a specific rank. In [array languages]((https://mlochbaum.github.io/BQN/doc/leading.html)) that follow this convention, omitting the rank modifier defaults to rank 1.
-|               | Col 1 | Col 2 | Col 3 | Rank 2 Sum | Rank 2 Length |
-| ------------- | ----- | ----- | ----- | ---------- | ------------- |
-| Row 1         | 1     | 2     | 3     | 6          | 3             |
-| Row 2         | 1     | 2     | 3     | 6          | 3             |
-| Rank 1 Sum    | 2     | 4     | 6     |            |               |
-| Rank 1 Length | 2     | 2     | 2     |            |               |
-
-For functions that operate on arrays (ex. length), each increase in rank adds one additional FMap before calling the function:
-```
-// rank 1
-input |> Array.length
-// rank 2
-input |> Array.map Array.length
-```
-
-When acting on cells, you can index across them (for brevity this code assumes a rectangular, non-empty array).
-```
-// rank 1
-input.[0] |> Array.mapi (fun i _ -> input |> Array.map (Array.item i) |> Array.sum)
-// rank 2
-input |> Array.map Array.sum
-```
-
-Note that `SumRank1` is equivalent to `Transpose >> SumRank2`.
 
 # Algorithm Names
 ### Sampling of algorithm names across languages
@@ -64,16 +45,38 @@ Always use the most specialized form of an algorithm possible. There are excepti
 
 <img src="/Media/ConorHoekstra--specializations.png" height="150px">
 
+# Array Rank
+When working with multi-dimensional arrays, it's useful to know the leading axis convention. We count arrays from the outside in, and apply functions across a specific rank. In [array languages]((https://mlochbaum.github.io/BQN/doc/leading.html)) that follow this convention, omitting the rank modifier defaults to rank 1.
+|               | Col 1 | Col 2 | Col 3 | Rank 2 Sum | Rank 2 Length |
+| ------------- | ----- | ----- | ----- | ---------- | ------------- |
+| Row 1         | 1     | 2     | 3     | 6          | 3             |
+| Row 2         | 1     | 2     | 3     | 6          | 3             |
+| Rank 1 Sum    | 2     | 4     | 6     |            |               |
+| Rank 1 Length | 2     | 2     | 2     |            |               |
+
+For functions that operate on arrays (ex. length), each increase in rank adds one additional FMap before calling the function:
+```
+// rank 1
+input |> Array.length
+// rank 2
+input |> Array.map Array.length
+```
+
+When acting on cells, you can index across them (for brevity this code assumes a rectangular, non-empty array).
+```
+// rank 1
+input.[0] |> Array.mapi (fun i _ -> input |> Array.map (Array.item i) |> Array.sum)
+// rank 2
+input |> Array.map Array.sum
+```
+
+Note that `SumRank1` is equivalent to `Transpose >> SumRank2`.
+
 # Exercises
 For part 1, watch the videos before solving the problems. For other parts, solve the problems first. For all problems, you can copy in any standard library function, ex. Scan or Iota. Focus on readability, not performance.
 
 ## Exercises Part 1
 ```
-*** Watch the first 34 minutes ***
-"C++ Seasoning -- Know Your Algorithms"
-- Sean Parent, 2013
-https://youtu.be/W2tWOdzgXHA
-
 "Functional vs Array Programming"
 - Conor Hoekstra (Code Report), 2021
 https://youtu.be/UogkQ67d0nY
