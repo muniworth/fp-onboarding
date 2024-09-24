@@ -61,3 +61,14 @@ https://youtu.be/seVSlKazsNk
 https://youtu.be/JELcdZLre3s
 ```
 Question: How does Blackbird relate to Inner Product?
+
+## [Database Normalization](#database-normalization)
+```
+"Learn Database Normalization - 1NF, 2NF, 3NF, 4NF, 5NF"
+by Decomplexify, 2022
+https://www.youtube.com/watch?v=GFQaEYEc8_8
+
+"Learn Database Denormalization"
+by Decomplexify, 2023
+https://www.youtube.com/watch?v=4bTq0GdSeQs
+```
