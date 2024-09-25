@@ -153,10 +153,15 @@ Hint: you need at least 2 passes over the array (forward and back). Remember tha
 Given two strings, count the number of characters that exactly match between them. What algorithm solves this with memory complexity of O(1)?
 
 ```
-// example
+// example 1
 input 1: "abcd"
 input 2: "abzd"
 output: 3
+
+// example 2
+input 1: "abcd"
+input 2: "abdc"
+output: 2
 ```
 
 ```
