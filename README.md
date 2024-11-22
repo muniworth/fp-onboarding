@@ -2,11 +2,11 @@
 Most developers learn to solve problems by declaring temporary variables and for loops, an anti-pattern Venkat Subramaniam calls [Primitive Obession](https://youtu.be/znZlF4uQBN0?t=1047). It doesn't allow for progress when you get stuck on a difficult problem, and results in unreadable, buggy code.
 
 Instead, solve problems using a rigorous step-by-step approach:
-1. Construct a domain model (only relevant if there's a domain to model, which isn't the case for Leetcode questions).
+1. Construct a domain model (only if there's a domain to model, which isn't the case for Leetcode).
 2. Specify type signature.
-3. Write the type transformation pipeline (expand, transform, reduce)
-4. Solve the problem one step at a time by implementing transformations.
-5. Specialize the transformations using standard library functions. ex. Sum is a specialization of plus-reduce. Length is a specialization of count-reduce.
+3. Write a pipeline that implements the type signature (expand, transform, reduce).
+4. Solve the problem one step at a time by writing callbacks within the pipeline.
+5. Specialize the algorithms using standard library functions. ex. Sum is a specialization of plus-reduce. Length is a specialization of count-reduce.
 
 Using a rigorous approach increases the likelihood of writing maintainable code.
 
@@ -20,25 +20,22 @@ Step 2
 number[][] -> number[]
 
 Step 3
-input
-|> reduce rank2
+input |> reduce rank2
 
 Step 4
-input
-|> Array.map (fun cs -> Array.reduce (+) cs)
+input |> Array.map (Array.reduce (+))
 
 Step 5
-input
-|> Array.map Array.sum
+input |> Array.map Array.sum
 ```
 
-## [Algorithm Intuition](1_Algorithm_Intuition.md)
+1 - [Algorithm Intuition](1_Algorithm_Intuition.md)
 
-## [Domain Driven Design](2_Domain_Driven_Design.md)
+2 - [Domain Driven Design](2_Domain_Driven_Design.md)
 
-## [Functional Programming](3_Functional_Programming.md)
+3 - [Functional Programming](3_Functional_Programming.md)
 
-## [Hexagonal Architecture](#hexagonal-architecture)
+## 4 - Hexagonal Architecture
 ```
 "Functional architecture - The pits of success"
 - Mark Seemann, NDC Sydney 2016
@@ -49,7 +46,7 @@ https://youtu.be/US8QG9I1XW0
 https://youtu.be/cxs7oLGrxQ4
 ```
 
-## [Combinators](#combinators)
+## 5 - Combinators
 ```
 Combinators and when to use point-free style
 "Point-Free or Die: Tacit Programming in Haskell and Beyond"
@@ -62,7 +59,7 @@ https://youtu.be/JELcdZLre3s
 ```
 Question: How does Blackbird relate to Inner Product?
 
-## [Database Normalization](#database-normalization)
+## 6 - Database Normalization
 ```
 "Learn Database Normalization - 1NF, 2NF, 3NF, 4NF, 5NF"
 by Decomplexify, 2022
