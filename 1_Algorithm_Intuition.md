@@ -149,7 +149,16 @@ for (let i=0; i < xs.length; i++) {
 ### Problem 1 [Trapping Rainwater](https://leetcode.com/problems/trapping-rain-water/)
 Hint: you need at least 2 passes over the array (forward and back). Remember that Scan returns a longer array than the input.
 
-### Problem 2
+### Problem 2 Dirty Input Sum
+Sum the numbers in an array while ignoring non-numeric elements. What algorithm solves this with memory complexity of O(1)?
+
+```
+// example
+input: [1, 2, "text"]
+output: 3
+```
+
+### Problem 3 Count Matched
 Given two strings, count the number of characters that exactly match between them. What algorithm solves this with memory complexity of O(1)?
 
 ```
