@@ -11,17 +11,28 @@ https://youtu.be/6YbK8o9rZfI
 ```
 
 ### Functors
-A functor is a container that you can map over (i.e. inject transform logic into).
+Functors are composable data structures that you can map over (i.e. inject transform logic into).
 ```
 type functor = {
-   // aliases: Fmap, Map, Select
-   fmap: M<A> -> (A -> B) -> M<B>
+   // aliases: Fmap, Select
+   map: (A -> B) -> M<A> -> M<B>
 }
 
 "An Introduction to Functors in Javascript"
 - Ijemma Onwuzulike, 2020
 https://youtu.be/XcM39gnqgNc
 ```
+
+### [Pure](https://fsharpforfunandprofit.com/posts/elevated-world/#the-return-function)
+Pure lifts a value into a functor.
+
+aliases: lift, point, return, unit, yield
+- Not to be confused with [Lift](https://fsharpforfunandprofit.com/posts/elevated-world/#lift), an alias for map.
+- In FSharp, it's idiomatic to call pure 'return' or 'retn'.
+- Haskell can use 'return' for monads, but 'pure' works for both monads and applicatives.
+
+### Applicatives
+TODO ap
 
 ### Monads
 Definition 1 (from Mark Seemann):
@@ -45,11 +56,6 @@ parse1 thingToParse
 |> Result.Filter predicate
 |> Result.Map doSomethingUseful
 ```
-
-### [Lift](https://fsharpforfunandprofit.com/posts/elevated-world/#return)
-aliases: return, pure, unit, yield, point
-
-Not to be confused with [Lift](https://fsharpforfunandprofit.com/posts/elevated-world/#lift), an alias for FMap. FSharp calls Lift 'return'.
 
 ```
 "Monads are everywhere... Maybe that's bad?"
