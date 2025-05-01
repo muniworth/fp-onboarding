@@ -23,16 +23,16 @@ type functor<M> = {
 https://youtu.be/XcM39gnqgNc
 ```
 
+### Applicatives
+TODO ap
+
 ### [Pure](https://fsharpforfunandprofit.com/posts/elevated-world/#the-return-function)
-Pure lifts a value into a functor.
+Pure lifts a value into an applicative.
 
 aliases: lift, point, return, unit, yield
 - Not to be confused with [Lift](https://fsharpforfunandprofit.com/posts/elevated-world/#lift), an alias for map.
 - In FSharp, it's idiomatic to call pure 'return' or 'retn'.
 - Haskell can use 'return' for monads, but 'pure' works for both monads and applicatives.
-
-### Applicatives
-TODO ap
 
 ### Monads
 Definition 1 (from Mark Seemann):
