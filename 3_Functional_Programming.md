@@ -13,7 +13,7 @@ https://youtu.be/6YbK8o9rZfI
 ### Functors
 Functors are composable data structures that you can map over (i.e. inject transform logic into).
 ```
-type functor = {
+type functor<M> = {
    // aliases: Fmap, Select
    map: (A -> B) -> M<A> -> M<B>
 }
