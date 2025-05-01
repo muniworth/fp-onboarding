@@ -35,7 +35,8 @@ input |> Array.map Array.sum
 
 3 - [Functional Programming](3_Functional_Programming.md)
 
-## 4 - Hexagonal Architecture
+## 4 - Onion Architecture
+aliases: pure architecture, hexagonal architecture, ports and adapters
 ```
 "Functional architecture - The pits of success"
 - Mark Seemann, NDC Sydney 2016
@@ -46,7 +47,8 @@ https://youtu.be/US8QG9I1XW0
 https://youtu.be/cxs7oLGrxQ4
 ```
 
-## 5 - Combinators
+## Useful but out of scope
+### Combinators
 ```
 Combinators and when to use point-free style
 "Point-Free or Die: Tacit Programming in Haskell and Beyond"
@@ -58,8 +60,9 @@ https://youtu.be/seVSlKazsNk
 https://youtu.be/JELcdZLre3s
 ```
 Question: How does Blackbird relate to Inner Product?
+Question: How does S relate to ap?
 
-## 6 - Database Normalization
+### Database Normalization
 ```
 "Learn Database Normalization - 1NF, 2NF, 3NF, 4NF, 5NF"
 by Decomplexify, 2022
