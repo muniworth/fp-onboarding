@@ -1,15 +1,3 @@
-[Intro Video](#intro-video)
-
-[Algorithm Names](#algorithm-names)
-
-[Array Rank](#array-rank)
-
-[Exercises Part 1](#exercises-part-1)
-
-[Exercises Part 2](#exercises-part-2)
-
-[Exercises Part 3](#exercises-part-3)
-
 # Intro Video
 > [!IMPORTANT]
 > Watch the first 34 minutes
@@ -19,25 +7,8 @@
 https://youtu.be/W2tWOdzgXHA
 ```
 
-# Algorithm Names
-### Sampling of algorithm names across languages
-```
-"Consistently Inconsistent"
-- Conor Hoekstra (Code Report), Meeting C++ 2019
-https://youtu.be/tsfaE-eDusg
-```
-
-### Hoogle Translate for FMap
-<img src="/Media/ConorHoekstra--hoogle_translate_fmap.png" height="350px">
-
-- Called `.Select` in C Sharp (LINQ).
-- Called `.map` in JavaScript.
-
-### The 3 Main Higher Order Functions
-<img src="/Media/ConorHoekstra--3_main_higher_order_functions.jpg" height="500px">
-
-### Reductions
-Ken Iverson coined `Reduce` in the 1950s during his development of Iversonian Notation, described in his Turing award paper "[Notation as a Tool of Thought](https://www.eecg.utoronto.ca/~jzhu/csc326/readings/iverson.pdf)"
+### Reduction
+Ken Iverson coined `Reduce` in his 1962 book "A Programming Language", which introduced Iversonian Notation, later described in his Turing award paper "[Notation as a Tool of Thought](https://www.eecg.utoronto.ca/~jzhu/csc326/readings/iverson.pdf)". In the context of arrays, `Reduce` reduces one axis of an N-dimensional array, yielding an (N-1) dimensional array (or scalar). In general, `Reduce` reduces a foldable data structure to a summary value one element at a time.
 
 |        | Direction     | Operator  | Initial Value | Type Signature            |
 | ------ | ------------- | --------- | ------------- | ------------------------- |
@@ -48,10 +19,85 @@ Ken Iverson coined `Reduce` in the 1950s during his development of Iversonian No
 
 Language implementations of reduce/fold vary significantly, and many use a single function for every variation. For example, JavaScript and FSharp both throw if you don't provide an initial value for an empty list, unlike APL which infers the identity from the binary operator. More variations are possible: C++ has `fold_right_first` and `fold_left_first` which don't require an initial value, and `accumulate` with directionality defined by an iterator.
 
+| Specialization | Type Signature                   |
+| -------------- | -------------------------------- |
+| Find           | (a → bool) → a[] → a Option      |
+| Pick           | (a → b Option) → a[] → b Option  |
+| Head           | [a, ...a] → a                    |
+| Last           | [a, ...a] → a                    |
+| HeadEmpty      | [a, ...a] → a Option             |
+| LastEmpty      | [a, ...a] → a Option             |
+| Count          | a[] -> int                       |
+| Sum            | float[] -> float                 |
+
+### Expansion / Unfold
+<details open>
+   <summary>Expansions are the opposite of reductions.</summary>
+   
+|              | Type Signature            |
+| ------------ | ------------------------- |
+| Init         | int → (int → a) → a[]     |
+| Iota         | int → int → int[]         |
+| OuterProduct | a[] → b[] → (a * b)[][]   |
+| Range        | int → int → int[]         |
+| Replicate    | int → a → a[]             |
+   
+</details>
+
+### Transforms
+<details open>
+   <summary>Transforms preserve the dimension of array.</summary>
+   
+|               | Type Signature                   | Length | Composition           | Subcategory | Parallelization |
+| ------------- | -------------------------------- | ------ | --------------------- | ----------- | --------------- |
+| Map           | (a → b) → a[] → b[]              | n      |                       | Map         | 1               |
+| Choose        | (a → b Option) → a[] → b[]       | <= n   |                       | Selection   | 1               |
+| Filter        | (a → bool) → a[] → a[]           | <= n   |                       | Selection   | 1               |
+| FilterMap     | (a → bool) → (a → b) → a[] → b[] | <= n   | Filter >> Map         | Map         | 1               |
+| MapFilter     | (a → b) → (b → bool) → a[] → b[] | <= n   | Map >> Filter         | Map         | 1               |
+| Scan          | (s * t → s) → s → t[] → s[]      | n + 1  |                       | Scan        | log(n)          |
+| ScanInclusive | (s * t → s) → s → t[] → s[]      | n      | Scan >> Skip 1        | Scan        | log(n)          |
+| ScanExclusive | (s * t → s) → s → t[] → s[]      | n      | Scan >> Take n        | Scan        | log(n)          |
+| Rotate        | int → a[] → a[]                  | n      |                       | Permutation |                 |
+| Sort          | (a * a → -1|0|1) → a[] → a[]     | n      |                       | Permutation |                 |
+| Dedupe        | a[] → a[]                        | <= n   |                       | Selection   |                 |
+| Intersperse   | a → a[] → a[]                    | >= n   |                       |             |                 |
+| Intercalate   | a[] → a[][] → a[]                | >= n   | Intersperse >> Concat |             |                 |
+| Partition     | (a → bool) → a[] → (a[] * a[])   |        |                       | Group       |                 |
+| SplitAt       | int → (a[] * a[])                |        |                       | Group       |                 |
+
+</details>
+
 ### Specializations
+Projection is a common specialization, denoted by `<name>By`. For example:
+```
+// Less Specialized
+users |> Array.Find (fun x -> x.Name = "Bob")
+
+// More Specialized
+users |> Array.FindBy _.Name (= "Bob")
+```
+
 Always use the most specialized form of an algorithm possible. There are exceptions to this rule, ex. `+/` in APL is already quite terse, so defining `Sum` wouldn't make sense. Function specializations usually form a tree, ex. this figure for [Mismatch](https://en.cppreference.com/w/cpp/algorithm/mismatch)
 
 <img src="/Media/ConorHoekstra--specializations.png" height="150px">
+
+# Algorithm Names
+### Sampling of algorithm names across languages
+```
+"Consistently Inconsistent"
+- Conor Hoekstra (Code Report), Meeting C++ 2019
+https://youtu.be/tsfaE-eDusg
+```
+
+### Hoogle Translate for Map
+<img src="/Media/ConorHoekstra--hoogle_translate_fmap.png" height="350px">
+
+- Called `.Select` in C Sharp (LINQ).
+- Called `.map` in JavaScript.
+
+### The 3 Main Higher Order Functions
+<img src="/Media/ConorHoekstra--3_main_higher_order_functions.jpg" height="500px">
 
 # Array Rank
 When working with multi-dimensional arrays, it's useful to know the leading axis convention. We count arrays from the outside in, and apply functions across a specific rank. In [array languages]((https://mlochbaum.github.io/BQN/doc/leading.html)) that follow this convention, omitting the rank modifier defaults to rank 1.
@@ -62,7 +108,7 @@ When working with multi-dimensional arrays, it's useful to know the leading axis
 | Rank 1 Sum    | 2     | 4     | 6     |            |               |
 | Rank 1 Length | 2     | 2     | 2     |            |               |
 
-For functions that operate on arrays (ex. length), each increase in rank adds one additional FMap before calling the function:
+For functions that operate on arrays (ex. length), each increase in rank adds one additional Map before calling the function:
 ```
 // rank 1
 input |> Array.length
@@ -78,7 +124,7 @@ input.[0] |> Array.mapi (fun i _ -> input |> Array.map (Array.item i) |> Array.s
 input |> Array.map Array.sum
 ```
 
-Note that `SumRank1` is equivalent to `Transpose >> SumRank2`.
+`SumRank1` is equivalent to `Transpose >> SumRank2`.
 
 # Exercises
 For part 1, watch the videos before solving the problems. For other parts, solve the problems first. For all problems, you can copy in any standard library function, ex. Scan or Iota. Focus on readability, not performance.
