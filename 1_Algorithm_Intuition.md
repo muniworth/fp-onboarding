@@ -44,7 +44,7 @@ Ken Iverson coined `Reduce` in the 1950s during his development of Iversonian No
 | Reduce | Associative   | Monoid    | No            | (A → A → A) → A[] → A     |
 | Seduce | Associative   | Semigroup | Yes           | (A → A → A) → A → A[] → A |
 | FoldL  | Left-to-Right | Binary    | Yes           | (B → A → B) → B → A[] → B |
-| FoldR  | Right-to-Left | Binary    | Yes           | (B → A → B) → B → A[] → B |
+| FoldR  | Right-to-Left | Binary    | Yes           | (A → B → B) → B → A[] → B |
 
 Language implementations of reduce/fold vary significantly, and many use a single function for every variation. For example, JavaScript and FSharp both throw if you don't provide an initial value for an empty list, unlike APL which infers the identity from the binary operator. More variations are possible: C++ has `fold_right_first` and `fold_left_first` which don't require an initial value, and `accumulate` with directionality defined by an iterator.
 
