@@ -7,6 +7,7 @@
 https://youtu.be/W2tWOdzgXHA
 ```
 
+## Algorithm Classification
 ### Reduction
 Ken Iverson coined `Reduce` in his 1962 book "A Programming Language", which introduced Iversonian Notation, later described in his Turing award paper "[Notation as a Tool of Thought](https://www.eecg.utoronto.ca/~jzhu/csc326/readings/iverson.pdf)". In the context of arrays, `Reduce` reduces one axis of an N-dimensional array, yielding an (N-1) dimensional array (or scalar). In general, `Reduce` reduces a foldable data structure to a summary value one element at a time.
 
@@ -19,7 +20,10 @@ Ken Iverson coined `Reduce` in his 1962 book "A Programming Language", which int
 
 Language implementations of reduce/fold vary significantly, and many use a single function for every variation. For example, JavaScript and FSharp both throw if you don't provide an initial value for an empty list, unlike APL which infers the identity from the binary operator. More variations are possible: C++ has `fold_right_first` and `fold_left_first` which don't require an initial value, and `accumulate` with directionality defined by an iterator.
 
-| Specialization | Type Signature                   |
+<details open>
+   <summary>Reductions</summary>
+
+|                | Type Signature                   |
 | -------------- | -------------------------------- |
 | Find           | (a → bool) → a[] → a Option      |
 | Pick           | (a → b Option) → a[] → b Option  |
@@ -29,6 +33,8 @@ Language implementations of reduce/fold vary significantly, and many use a singl
 | LastEmpty      | [a, ...a] → a Option             |
 | Count          | a[] -> int                       |
 | Sum            | float[] -> float                 |
+
+</details>
 
 ### Expansion / Unfold
 <details open>
@@ -44,7 +50,7 @@ Language implementations of reduce/fold vary significantly, and many use a singl
    
 </details>
 
-### Transforms
+### Transform
 <details open>
    <summary>Transforms preserve the dimension of array.</summary>
    
@@ -59,7 +65,7 @@ Language implementations of reduce/fold vary significantly, and many use a singl
 | ScanInclusive | (s * t → s) → s → t[] → s[]      | n      | Scan >> Skip 1        | Scan        | log(n)          |
 | ScanExclusive | (s * t → s) → s → t[] → s[]      | n      | Scan >> Take n        | Scan        | log(n)          |
 | Rotate        | int → a[] → a[]                  | n      |                       | Permutation |                 |
-| Sort          | (a * a → -1|0|1) → a[] → a[]     | n      |                       | Permutation |                 |
+| Sort          | (a * a → -1\|0\|1) → a[] → a[]   | n      |                       | Permutation |                 |
 | Dedupe        | a[] → a[]                        | <= n   |                       | Selection   |                 |
 | Intersperse   | a → a[] → a[]                    | >= n   |                       |             |                 |
 | Intercalate   | a[] → a[][] → a[]                | >= n   | Intersperse >> Concat |             |                 |
@@ -68,7 +74,7 @@ Language implementations of reduce/fold vary significantly, and many use a singl
 
 </details>
 
-### Specializations
+### Specialization
 Projection is a common specialization, denoted by `<name>By`. For example:
 ```
 // Less Specialized
