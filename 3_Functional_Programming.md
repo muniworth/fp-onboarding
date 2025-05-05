@@ -1,30 +1,48 @@
-# What is Functional Programming?
+# Definition
+In 1966, Peter Landin coined the term "Functional Programming" to describe the language ISWIM. However, he didn't provide a definition for FP, leaving the term open for debate.
 
-Most attempts at defining "functional programming" resort to referencing
-particular programming language features that contemporary "functional
-languages" happen to have, such as closures and a lack of mutable state, but no
-programming language feature is really essential to functional programming.
-Rather, functional programming is built around one core tenet, namely
-***compositionality***, the ability to reason about programs by breaking them
-down into components that can in turn be understood independently.
+Most attempts at defining functional programming reference language features, such as closures and immutable state, but no language feature is essential to FP. Functional programming needs **compositionality**, meaning the ability to reason about programs by breaking them into understandable components. **Side effects prevent composition.** Kris Jenkins[1] and Richard Feldman[2] agree functional programming means managing effects to achieve composability.
 
-For example, take the simple program `t + u`, where `t` and `u` are arbitrary
+For example, take the simple program in figure 1, where `t` and `u` are arbitrary
 subprograms. To understand this program, we'd like to apply the principle of
 compositionality by (1) understanding `t` (independently of `u`), (2)
 understanding `u` (independently of `t`), and (3) understanding what it means
 to add two things together. Functional languages seek to admit this logic (as
-much as possible). By contrast, imagine we have a mutable variable `x` and take
-`t` to be `x := 3; 2` (set `x` to `3` and then evaluate to `2`) and `u` to be
-`x`. Now `u` can not be understood independently of `t`, and so the whole
-program `t + u` can only be understood as a whole. With this small program, the
-failure of the principle of compositionality is not really felt, but
-interconnectedness of large components in large programs quickly becomes
-unmanageable. (Indeed, the inapplicability of the principle of compositionality
-is the very [definition of complexity](https://youtu.be/SxdOUGdseq4) {TODO:
-Make sure this video really says what I think it says}.)
+much as possible).
 
-The value of compositional reasoning can only be learned from experience, but
-we now take it for granted and explore its consequences.
+Figure 1
+```
+// Program
+t() + u()
+
+// Subprogram v1 - Composable
+t = () -> 2
+u = () -> 3
+
+// Subprogram v2 - Not composable due to side effect
+t = () -> x := 3; 2
+u = () -> x
+```
+
+By contrast, subprogram v2 `u` cannot be understood independently of `t`, so the whole program `t + u` can only be understood as a whole. Interconnectedness of large components in large programs quickly becomes unmanageable. The inapplicability of the principle of compositionality is the [definition of complexity](https://youtu.be/SxdOUGdseq4).
+
+Functional programming is a cult:
+- Programmers who don't value composition don't understand why FP matters.
+- It's difficult to explain why FP is valuable.
+- Once you see the value of composition, you never want to leave.
+
+We drink the coolaid. The value of compositional reasoning can only be learned through experience, but we now take it for granted and explore its consequences.
+
+```
+"The Essence of Functional Programming"
+- Richard Feldman, FnConf 2022
+https://www.youtube.com/watch?v=l0ruvPCQh9I
+
+// Also worth watching
+"The Next Paradigm Shift in Programming"
+- Richard Feldman, 2020
+https://youtu.be/6YbK8o9rZfI
+```
 
 # Effects
 
@@ -194,3 +212,7 @@ do notation }
 { TODO: type class, laws }
 
 { TODO: examples: parsing }
+
+### References
+[1] "Side-Effects Are The Complexity Iceberg", Kris Jenkins, [YOW! 2024](https://www.youtube.com/watch?v=_nG09Z_tdUU)
+[2] "The Essence of Functional Programming", Richard Feldman, [FnConf 2022](https://www.youtube.com/watch?v=l0ruvPCQh9I)
