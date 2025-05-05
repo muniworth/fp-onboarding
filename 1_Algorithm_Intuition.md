@@ -36,12 +36,17 @@ https://youtu.be/tsfaE-eDusg
 ### The 3 Main Higher Order Functions
 <img src="/Media/ConorHoekstra--3_main_higher_order_functions.jpg" height="500px">
 
-### Variations of Reduce
-<img src="/Media/ConorHoekstra--reductions.png" height="350px">
+### Reductions
+Ken Iverson coined `Reduce` in the 1950s during his development of Iversonian Notation, described in his Turing award paper "[Notation as a Tool of Thought](https://www.eecg.utoronto.ca/~jzhu/csc326/readings/iverson.pdf)"
 
-`reduceLeft` and `reduceRight` are often called "associative-only reduction" since they don't commute. JavaScript has `.reduce` (which is actually a reduceLeft) and `.reduceRight`.
+|        | Direction     | Operator  | Initial Value | Type Signature                       |
+| ------ | ------------- | --------- | ------------- | ------------------------------------ |
+| Reduce | Associative   | Monoid    | No            | (A -> A -> A) -> A[n] -> A[n-1]      |
+| Seduce | Associative   | Semigroup | Yes           | (A -> A -> A) -> A -> A[n] -> A[n-1] |
+| FoldL  | Left-to-Right | Binary    | Yes           | (B -> A -> B) -> B -> A[n] -> B[n-1] |
+| FoldR  | Right-to-Left | Binary    | Yes           | (B -> A -> B) -> B -> A[n] -> B[n-1] |
 
-Supplying an identity as the initial value keeps the type signature simple `A[] -> A`. JavaScript and FSharp can both throw if you don't provide an initial value, unlike APL which infers the identity. You can change the folder and initial value to transform the output type `A[] -> B`, but this increases code complexity.
+Language implementations of reduce/fold vary significantly, and many use a single function for every variation. For example, JavaScript and FSharp both throw if you don't provide an initial value for an empty list, unlike APL which infers the identity from the binary operator. More variations are possible: C++ has `fold_right_first` and `fold_left_first` which don't require an initial value, and `accumulate` with directionality defined by an iterator.
 
 ### Specializations
 Always use the most specialized form of an algorithm possible. There are exceptions to this rule, ex. `+/` in APL is already quite terse, so defining `Sum` wouldn't make sense. Function specializations usually form a tree, ex. this figure for [Mismatch](https://en.cppreference.com/w/cpp/algorithm/mismatch)
