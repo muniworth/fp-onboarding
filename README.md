@@ -56,7 +56,7 @@ https://youtu.be/W2tWOdzgXHA
 </details>
 
 #### Transform Exercise 1
-[Duplicate Zeros](https://leetcode.com/problems/duplicate-zeros/)
+[1089. Duplicate Zeros](https://leetcode.com/problems/duplicate-zeros/)
 The problem says to mutate the input, so solve using a pure function and copy the results over:
 ```ts
 const xs2 = duplicateZeros(xs)
@@ -161,7 +161,7 @@ output: 3
 </details>
 
 #### Reduction Exercise 2
-[Longest Substring](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
+[3. Longest Substring](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
 
 <details>
     <summary>**Hint**</summary>
@@ -169,14 +169,14 @@ output: 3
 </details>
 
 #### Reduction Exercise 3
-[Trapping Rainwater](https://leetcode.com/problems/trapping-rain-water/)
+[42. Trapping Rainwater](https://leetcode.com/problems/trapping-rain-water/)
 <details>
     <summary>**Hint**</summary>
     You need at least 2 passes over the array (forward and back). Remember that Scan returns a longer array than the input.
 </details>
 
 #### Reduction Exercise 4
-[Leetcode 2016. Maximum Difference Between Increasing Elements](https://leetcode.com/problems/maximum-difference-between-increasing-elements/description/)
+[2016. Maximum Difference Between Increasing Elements](https://leetcode.com/problems/maximum-difference-between-increasing-elements/description/)
 
 #### Reduction Videos
 ```
