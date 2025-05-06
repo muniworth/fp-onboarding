@@ -345,7 +345,44 @@ https://youtu.be/cxs7oLGrxQ4
 ```
 
 # Domain Driven Design
-[Domain Driven Design](2_Domain_Driven_Design.md)
+Hide primitive types within implementation details.
+```
+UserId = Guid |> Brand "User"
+OrganizationId = Guid |> Brand "Organization"
+```
+
+Non-domain types are fully abstract.
+```
+Option 'T =
+   | Some 'T
+   | None
+```
+
+Domain types are readable by a domain expert. Keep them as semantic as possible.
+```
+User =
+   Name: string
+   Email: EmailAddress
+   Roles: Set<Role>
+```
+
+Schemas include constraints without a language requirement for dependent types.
+```
+SparseOpExRow =
+   Variability: Percent |> Clamp(0.0, 1.0)
+   Cells: Dict<Year, OpExCell>
+```
+
+```
+"Getting rid of Option with Sum Types - Is Maybe an Option"
+- The Dev Owl, 2020
+Skip part 1 if you're familiar with Option/Maybe
+Part 2 https://youtu.be/x5RA9gYPhnc
+Part 3 https://youtu.be/YGqEEREMA0k
+```
+
+
+
 
 # And Beyond
 Out of scope for FP onboarding, but good to know.
@@ -361,6 +398,7 @@ https://youtu.be/seVSlKazsNk
 https://youtu.be/JELcdZLre3s
 ```
 Question: How does Blackbird relate to Inner Product?
+
 Question: How does S relate to ap?
 
 ## Database Normalization
