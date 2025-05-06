@@ -43,9 +43,10 @@ https://youtu.be/W2tWOdzgXHA
 | Filter        | (a → bool) → a[] → a[]           | <= n  | Choose Option.SomeIf  | Selection   | 1        |
 | FilterMap     | (a → bool) → (a → b) → a[] → b[] | <= n  | Filter >> Map         | Map         | 1        |
 | MapFilter     | (a → b) → (b → bool) → a[] → b[] | <= n  | Map >> Filter         | Map         | 1        |
-| Scan          | (s * t → s) → s → t[] → s[]      | n + 1 |                       | Scan        | log(n)   |
-| ScanInclusive | (s * t → s) → s → t[] → s[]      | n     | Scan >> Skip 1        | Scan        | log(n)   |
-| ScanExclusive | (s * t → s) → s → t[] → s[]      | n     | Scan >> Take n        | Scan        | log(n)   |
+| ScanL         | (s * t → s) → s → t[] → s[]      | n + 1 |                       | Scan        | log(n)   |
+| ScanInclusive | (s * t → s) → s → t[] → s[]      | n     | ScanL >> Skip 1       | Scan        | log(n)   |
+| ScanExclusive | (s * t → s) → s → t[] → s[]      | n     | ScanL >> Take n       | Scan        | log(n)   |
+| MapAccumL     | (s*a → s*b) → s → a[] → b[] * s  | n     |                       | Scan        | log(n)   |
 | Rotate        | int → a[] → a[]                  | n     | SplitAt >> Flip Union | Permutation |          |
 | Sort          | (a * a → -1\|0\|1) → a[] → a[]   | n     |                       | Permutation |          |
 | Dedupe        | a[] → a[]                        | <= n  |                       | Selection   |          |
@@ -104,12 +105,12 @@ Language implementations of reduce/fold vary significantly, and many use a singl
 | -------------- | -------------------------------- | ----------------------- |
 | Find           | (a → bool) → a[] → a Option      | Filter >> HeadEmpty     |
 | Pick           | (a → b Option) → a[] → b Option  | Choose >> HeadEmpty     |
-| Catenate       | a[][] -> a[]                     |                         |
+| Catenate       | a[][] -> a[]                     | Bind Id                 |
 | Intercalate    | a[] → a[][] → a[]                | Intersperse >> Catenate |
 | Head           | [a, ...a] → a                    |                         |
 | Last           | [a, ...a] → a                    |                         |
-| HeadEmpty      | [a, ...a] → a Option             |                         |
-| LastEmpty      | [a, ...a] → a Option             |                         |
+| HeadEmpty      | a[] → a Option                   |                         |
+| LastEmpty      | a[] → a Option                   |                         |
 | Count          | a[] -> int                       | FoldL (+1) 0            |
 | Sum            | float[] -> float                 | Reduce (+)              |
 
