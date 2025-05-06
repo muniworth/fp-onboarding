@@ -1,3 +1,17 @@
+[Functional Programming](#functional-programming)
+
+[Algorithm Intuition](#algorithm-intuition)
+
+[Onion Architecture](#onion-architecture)
+
+[Domain Driven Design](#domain-driven-design)
+
+[And Beyond](#and-beyond)
+
+# Functional Programming
+[Functional Programming](3_Functional_Programming.md)
+TODO inline
+
 # Algorithm Intuition
 Most developers solve problems by declaring temporary variables, an anti-pattern Venkat Subramaniam calls [Primitive Obession](https://youtu.be/znZlF4uQBN0?t=1047), then writing logic step-by-step inside loops. It's easier to break a problem into composable sub-problems if you follow a rigorous step-by-step approach:
 1. Specify type signature.
@@ -318,13 +332,7 @@ output: 2
 https://youtu.be/TSZzvo4htTQ
 ```
 
-## TODO inline
-[Domain Driven Design](2_Domain_Driven_Design.md)
-
-## TODO inline
-[Functional Programming](3_Functional_Programming.md)
-
-## Onion Architecture
+# Onion Architecture
 aliases: pure architecture, hexagonal architecture, ports and adapters
 ```
 "Functional architecture - The pits of success"
@@ -336,8 +344,12 @@ https://youtu.be/US8QG9I1XW0
 https://youtu.be/cxs7oLGrxQ4
 ```
 
-## Useful but out of scope
-### Combinators
+# Domain Driven Design
+[Domain Driven Design](2_Domain_Driven_Design.md)
+
+# And Beyond
+Out of scope for FP onboarding, but good to know.
+## Combinators
 ```
 Combinators and when to use point-free style
 "Point-Free or Die: Tacit Programming in Haskell and Beyond"
@@ -351,7 +363,7 @@ https://youtu.be/JELcdZLre3s
 Question: How does Blackbird relate to Inner Product?
 Question: How does S relate to ap?
 
-### Database Normalization
+## Database Normalization
 ```
 "Learn Database Normalization - 1NF, 2NF, 3NF, 4NF, 5NF"
 by Decomplexify, 2022
