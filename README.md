@@ -49,24 +49,24 @@ https://youtu.be/W2tWOdzgXHA
 <details open>
    <summary>Transforms preserve the dimension of array.</summary>
    
-|               | Type Signature                   | Len   | Composition           | Subcategory | Parallel |
-| ------------- | -------------------------------- | ----- | --------------------- | ----------- | -------- |
-| Map           | (a → b) → a[] → b[]              | n     |                       | Map         | 1        |
-| Bind          | (a -> b[]) -> a[] -> b[]         | >= n  | Map >> Flat           |             |          |
-| Choose        | (a → b Option) → a[] → b[]       | <= n  |                       | Selection   | 1        |
-| Filter        | (a → bool) → a[] → a[]           | <= n  | Choose Option.SomeIf  | Selection   | 1        |
-| FilterMap     | (a → bool) → (a → b) → a[] → b[] | <= n  | Filter >> Map         | Map         | 1        |
-| MapFilter     | (a → b) → (b → bool) → a[] → b[] | <= n  | Map >> Filter         | Map         | 1        |
-| ScanL         | (s * t → s) → s → t[] → s[]      | n + 1 |                       | Scan        | log(n)   |
-| ScanInclusive | (s * t → s) → s → t[] → s[]      | n     | ScanL >> Skip 1       | Scan        | log(n)   |
-| ScanExclusive | (s * t → s) → s → t[] → s[]      | n     | ScanL >> Take n       | Scan        | log(n)   |
-| MapAccumL     | (s*a → s*b) → s → a[] → b[] * s  | n     |                       | Scan        | log(n)   |
-| Rotate        | int → a[] → a[]                  | n     | SplitAt >> Flip Union | Permutation |          |
-| Sort          | (a * a → -1\|0\|1) → a[] → a[]   | n     |                       | Permutation |          |
-| Dedupe        | a[] → a[]                        | <= n  |                       | Selection   |          |
-| Intersperse   | a → a[] → a[]                    | >= n  |                       |             |          |
-| Partition     | (a → bool) → a[] → (a[] * a[])   |       | GroupBy Predicate     | Group       |          |
-| SplitAt       | int → (a[] * a[])                |       |                       | Group       |          |
+|               | Type Signature                   | Len | Composition           | Subcategory | Parallel |
+| ------------- | -------------------------------- | --- | --------------------- | ----------- | -------- |
+| Map           | (a → b) → a[] → b[]              | n   |                       | Map         | 1        |
+| Bind          | (a -> b[]) -> a[] -> b[]         | ≥ n | Map >> Flat           |             |          |
+| Choose        | (a → b Option) → a[] → b[]       | ≤ n |                       | Selection   | 1        |
+| Filter        | (a → bool) → a[] → a[]           | ≤ n | Choose Option.SomeIf  | Selection   | 1        |
+| FilterMap     | (a → bool) → (a → b) → a[] → b[] | ≤ n | Filter >> Map         | Map         | 1        |
+| MapFilter     | (a → b) → (b → bool) → a[] → b[] | ≤ n | Map >> Filter         | Map         | 1        |
+| ScanL         | (s * t → s) → s → t[] → s[]      | n+1 |                       | Scan        | log(n)   |
+| ScanInclusive | (s * t → s) → s → t[] → s[]      | n   | ScanL >> Skip 1       | Scan        | log(n)   |
+| ScanExclusive | (s * t → s) → s → t[] → s[]      | n   | ScanL >> Take n       | Scan        | log(n)   |
+| MapAccumL     | (s\*a → s\*b) → s → a[] → b[] * s  | n   |                       | Scan        | log(n)   |
+| Rotate        | int → a[] → a[]                  | n   | SplitAt >> Flip Union | Permutation |          |
+| Sort          | (a * a → -1\|0\|1) → a[] → a[]   | n   |                       | Permutation |          |
+| Dedupe        | a[] → a[]                        | ≤ n |                       | Selection   |          |
+| Intersperse   | a → a[] → a[]                    | ≥ n |                       |             |          |
+| Partition     | (a → bool) → a[] → (a[] * a[])   |     | GroupBy Predicate     | Group       |          |
+| SplitAt       | int → (a[] * a[])                |     |                       | Group       |          |
 
 </details>
 
