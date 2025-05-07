@@ -6,8 +6,8 @@ the term open for debate. Most attempts at defining functional programming
 resort to referencing particular language features, such as closures and lack of
 mutable state, but no language feature is essential to FP. Rather, functional
 programming builds around one core tenet, **compositionality**, the ability to
-reason about programs by breaking them into components that can in turn be
-understood independently.
+practically reason about programs by breaking them into components that can in
+turn be understood independently.
 
 For example, take the simple program `t + u`, where `t` and `u` are arbitrary
 subprograms. To understand this program, we'd like to apply the principle of
@@ -112,30 +112,154 @@ of the specific effects here; just observe the pattern.
 
 ### State
 
-We encode the effect of state with type `s` as follows:
+We encode the effect of state of type `s` as a function from an initial state
+value to an output value paired with a final state value:
 ```Haskell
 data State s a = State (s -> (a, s))
---   Inital state value ^        ^ Final state value
+--   ^^^^^ ^^^   ^^^^^  ^^^^^^^^^^^
+--     1    2      3         4
 ```
-That is, a `State s a` computation is a function from an initial state value
-to an output value paired with a final state value.
+> Haskell novices: Read this type declaration as follows:
+> 1. The name of the new type.
+> 2. Type parameters. I.e., `State s a` is a type for any types `s` and `a`.
+>    You may recognize such type parameters as "generics" from other languages.
+> 3. The name of the constructor. In general, we can have multiple constructors,
+>    but here we only require one, and it happens to have the same name as the
+>    type itself.
+> 4. The sole field of the `State` constructor. In general, we can have multiple
+>    fields per constructor, but here we only require one, a function with the
+>    following interpretation:
+>    - The first `s` represents the initial state.
+>    - The `a` represents the output.
+>    - The second `s` represents the final state.
+
+For example, here's a computation `fib` for computing Fibonacci numbers that
+records the previous two Fibonacci numbers as state and returns the next
+Fibonacci number. As a "side effect", it updates the state, such that
+"iterating" `fib` emits the entire sequence.
+```Haskell
+fib :: State (Int, Int) Int
+fib = State \(x, y) -> let z = x + y in (z, (y, z))
+--           ^^^^^^                      ^  ^^^^^^
+--        initial state             output    final state
+```
+> Haskell novices: `\p -> e` is a lambda (i.e., function expression) with
+> pattern `p` and body `e`.
+
+Remember: `State s a` represents values with an *encoded* state effect. In this
+case, to actually *perform* the state effect, we strip off the `State` wrapper
+and plug in an initial state:
+```Haskell
+runState :: State s a -> s -> (a, s)
+runState (State f) initialState = f initialState
+-- Alternative definition: runState (State f) = f
+```
+This returns the output value *and* the final state (but often we only care
+about one or the other).
+
+Running `fib` a few times, each time passing the , we get the following:
+```Haskell
+runState fib (0, 1)  =  (1, (1, 1))
+runState fib (1, 1)  =  (2, (1, 2))
+runState fib (1, 2)  =  (3, (2, 3))
+runState fib (2, 3)  =  (5, (3, 5))
+runState fib (3, 5)  =  (8, (5, 8))
+```
 
 #### Example
 
-{ TODO: finite state machine (parsing) example }
+Let's write a function that checks if a string contains "xyz". This function
+should have the following signature:
+```Haskell
+contains'xyz' :: String -> Bool
+```
+(Haskell allows single quotes in names.) Internally, this function will inspect
+its input character-by-character, and as we move from one character to the next,
+we must remember how much of "xyz" we've seen so far. We'll record this state
+with type `Q`:
+```Haskell
+data Q = Seen'' | Seen'x' | Seen'xy' | Seen'xyz'
+```
+Each input character changes the state according to the following function:
+```Haskell
+transition :: Char -> State Q ()
+transition nextChar = State \currState ->
+    case (currState, nextChar) of
+        -- This is not the most economical set of cases.
+        (Seen'', 'x') -> set Seen'x'
+        (Seen'', _) -> set Seen''
+        (Seen'x', 'x') -> set Seen'x'
+        (Seen'x', 'y') -> set Seen'xy'
+        (Seen'x', _) -> set Seen''
+        (Seen'xy', 'x') -> set Seen'x'
+        (Seen'xy', 'z') -> set Seen'xyz'
+        (Seen'xy', _) -> set Seen''
+        (Seen'xyz', _) -> set Seen'xyz'
+```
+```Haskell
+haveSeen'xyz' :: State Q Bool
+haveSeen'xyz' = State \case -- Switch on current state
+    Seen'xyz' -> (True, Seen'xyz')
+    q -> (False, q)
+```
+
+We realize this table as the following function, which augments augments
+`contains'xyz'` with a `State Q` effect:
+```Haskell
+statefulContains'xyz' :: String -> State Q Bool
+statefulContains'xyz' = \case -- Switch on input string
+    [] -> haveSeen'xyz'
+    c:cs -> transition c `seq` statefulContains'xyz' cs
+
+-- Unwrap a state computation.
+runState :: State s a -> s -> (a, s)
+runState (State f) = f
+```
+We now implement the original `contains'xyz'` function as
+`statefulContains'xyz'` with an initial state of `Seen''`:
+```Haskell
+contains'xyz' cs = fst (runState (statefulContains'xyz' cs) Seen'')
+
+-- fst projects the first component out of a pair. In this case, we use it to
+-- get the output from a state computation, ignoring the final state.
+fst :: (a, b) -> a
+fst (a, _) = a
+```
+
+This solution should seem significantly less readable than using a local
+mutable variable of type `Q`, like you might in an imperative language. Later,
+we introduce effect abstractions to improve readability.
 
 #### Exercise
 
-Implement the following:
+Implement the following fundamental operations of the state effect:
 ```Haskell
+
 -- Return the given value, leaving the state unchanged.
 pure :: a -> State s a
+pure a = State \s -> (a, s)
 
 -- Return the current state, leaving the state unchanged.
 get :: State s s
+get = State \s -> (s, s)
 
 -- Set the state and return the unit.
 set :: s -> State s ()
+set s = State \_ -> ((), s)
+
+-- Sequence two state computations, where the second state computation can
+-- depend on the output value of the first state computation.
+bind :: State s a -> (a -> State s b) -> State s b
+bind sa sb = State \s ->
+    let (a, s') = runState sa s
+    in runState (sb a) s'
+
+-- Sequence two state effects, using the final state of the first as the initial
+-- state of the second.
+seq :: State s a -> State s b -> State s b
+seq sa sb = State \s ->
+    let (_, s') = runState sa s -- 1. Run sa, getting its final state value s'.
+    in runState sb s'           -- 2. Run sb with initial state value s'.
 ```
 
 #### Exercise
@@ -150,7 +274,7 @@ data State' s a
 Implement a function that interprets `State'` as `State` "reasonably", with the
 following type signature:
 ```Haskell
-run :: State' s a -> State s a
+interpret :: State' s a -> State s a
 ```
 
 <details>
@@ -173,6 +297,8 @@ Implement the following function for catching errors:
 ```Haskell
 catch :: Except e a -> (e -> Except e a) -> Except e a
 ```
+(In part, this exercise asks you to figure out what `catch` should do based on
+its type signature.)
 
 ### File I/O
 
@@ -181,7 +307,7 @@ but we could encode basic file I/O effects as follows:
 ```Haskell
 data FileIO a
   = Pure a -- No/trivial effects
-  | Open String (FileHandle -> FileIO a) -- Like "with open..." in Python
+  | Open String (FileHandle -> FileIO a) -- Like "with open(..., "r+") ..." in Python
   | Read FileHandle (String -> FileIO a) -- Read entire file
   | Write FileHandle String (FileIO a) -- Overwrite entire file
 ```
