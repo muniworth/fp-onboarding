@@ -51,14 +51,11 @@ viewed as an interaction with the ambient execution environment. (The "execution
 environment" is merely a conceptual device; it doesn't necessarily have some
 cohesive existence during the execution of a program.) Common effects include
 the following:
-- **State**: The environment records the current value of the state, and
-  programs interact with the environment by getting and setting the state. In
-  the previous example with `t = (x := 3; 2)` and `u = x`, the computation `t`
-  interacts with the environment by setting `x` to `3`, and `u` interacts with
-  the environment by getting `x`.
 - **Exceptions**: Programs interact with their execution environment by asking
   it to abort execution, often with some detail for why execution must abort
   (e.g., `throw error("Something broke!")`).
+- **State**: The environment records the current value of the state, and
+  programs interact with the environment by getting and setting the state.
 - **File I/O**: The environment has access to a file system, and programs
   interact with their environment by asking it to open/close, read from, and
   write to files.
@@ -107,8 +104,54 @@ Richard Feldman, "The Next Paradigm Shift in Programming", [ETE 2020](https://yo
 
 We encode effects as type-level functions `f` that send a type `a` of "pure
 values" to a type `f a` of "effectful values". Let's see how this plays out on
-the three kinds of effects from above. Don't worry too much about the details
-of the specific effects here; just observe the pattern.
+the three kinds of effects from above.
+
+### Exceptions
+
+We encode the effect of exceptions with type `e` as follows:
+```Haskell
+data Except e a = Success a | Failure e
+```
+{ TODO: Move over instructions for reading data declarations. }
+
+That is, an `Except e a` computation either succeeds, returning a value of type
+`a`, or it fails, returning an error of type `e`.
+
+With `Except`, we can create a function `uncons` for splitting a list into its
+head (first element) and tail (all but first element), or failing if the input
+list is empty:
+```Haskell
+data UnconsError = UnconsError
+
+uncons :: [a] -> Except UnconsError (a, [a])
+uncons xs = case xs of
+    x:xs -> Success (x, xs)
+    [] -> Failure UnconsError
+```
+What if we want to pull, say, four elements off the start of a list instead of
+only one?
+```Haskell
+uncons4 :: [a] -> Except UnconsError (a, a, a, a, [a])
+uncons4 xs0 = case uncons xs0 of
+    Success (x0, xs1) -> case uncons xs1 of
+        Success (x1, xs2) -> case uncons xs2 of
+            Success (x2, xs3) -> case uncons xs3 of
+                Success (x3, xs4) -> (x0, x1, x2, x3, xs4)
+                Failure e -> Failure e
+            Failure e -> Failure e
+        Failure e -> Failure e
+    Failure e -> Failure e
+```
+Yikes! This function suffers from the need to explicitly propagate errors.
+
+#### Exercise
+
+Implement the following function for catching errors:
+```Haskell
+catch :: Except e a -> (e -> Except e a) -> Except e a
+```
+(In part, this exercise asks you to figure out what `catch` should do based on
+its type signature.)
 
 ### State
 
@@ -123,11 +166,11 @@ data State s a = State (s -> (a, s))
 > 1. The name of the new type.
 > 2. Type parameters. I.e., `State s a` is a type for any types `s` and `a`.
 >    You may recognize such type parameters as "generics" from other languages.
-> 3. The name of the constructor. In general, we can have multiple constructors,
->    but here we only require one, and it happens to have the same name as the
->    type itself.
-> 4. The sole field of the `State` constructor. In general, we can have multiple
->    fields per constructor, but here we only require one, a function with the
+> 3. The name of the constructor. In general, data types can have multiple
+>    constructors, but here we only require one, and it happens to have the same
+>    name as the type itself.
+> 4. The sole field of the `State` constructor. In general, each constructor can
+>    have multiple fields, but here we only require one, a function with the
 >    following interpretation:
 >    - The first `s` represents the initial state.
 >    - The `a` represents the output.
@@ -157,13 +200,18 @@ runState (State f) initialState = f initialState
 This returns the output value *and* the final state (but often we only care
 about one or the other).
 
-Running `fib` a few times, each time passing the , we get the following:
+We can now run `fib` to produce to first six Fibonacci numbers (`f0`, `f1`,
+`f2`, `f3`, `f4`, and `f5`):
+Running `fib` a few times, manually threading the state the through each call,
+we get the following:
 ```Haskell
-runState fib (0, 1)  =  (1, (1, 1))
-runState fib (1, 1)  =  (2, (1, 2))
-runState fib (1, 2)  =  (3, (2, 3))
-runState fib (2, 3)  =  (5, (3, 5))
-runState fib (3, 5)  =  (8, (5, 8))
+f0 = 0
+f1 = 1
+s0 = (0, 1)
+(f2, s1) = runState fib s0
+(f3, s2) = runState fib s1
+(f4, s3) = runState fib s2
+(f5, _) = runState fib s3
 ```
 
 #### Example
@@ -282,24 +330,6 @@ interpret :: State' s a -> State s a
     You should first determine what "resonable" should mean.
 </details>
 
-### Exceptions
-
-We encode the effect of exceptions with type `e` as follows:
-```Haskell
-data Except e a = Success a | Failure e
-```
-That is, an `Except e a` computation either succeeds, returning a value of type
-`a`, or it fails, returning an error of type `e`.
-
-#### Exercise
-
-Implement the following function for catching errors:
-```Haskell
-catch :: Except e a -> (e -> Except e a) -> Except e a
-```
-(In part, this exercise asks you to figure out what `catch` should do based on
-its type signature.)
-
 ### File I/O
 
 Unlike state and exceptions, there is no standard encoding of file I/O effects,
@@ -412,6 +442,10 @@ do notation }
 { TODO: type class, laws }
 
 { TODO: examples: parsing }
+
+# TODO
+
+Combining effects (like monad transformers, but dumbed down a bit)
 
 # References
 
