@@ -101,7 +101,7 @@ output for each index:
 </details>
 
 ### Reduction
-Ken Iverson coined `Reduce` in his 1962 book "A Programming Language", which introduced Iversonian Notation, later described in his Turing award paper "[Notation as a Tool of Thought](https://www.eecg.utoronto.ca/~jzhu/csc326/readings/iverson.pdf)". In the context of arrays, `Reduce` reduces one axis of an N-dimensional array, yielding an (N-1) dimensional array (or scalar). In general, `Reduce` reduces a foldable data structure to a summary value one element at a time.
+Ken Iverson coined `Reduce` in his 1962 book "A Programming Language", which introduced Iversonian Notation and inspired [APL](https://aplwiki.com/wiki/Simple_examples). APL is the subject of his Turing award paper "[Notation as a Tool of Thought](https://www.eecg.utoronto.ca/~jzhu/csc326/readings/iverson.pdf)". In the context of arrays, `Reduce` reduces one axis of an N-dimensional array, yielding an (N-1) dimensional array (or scalar). For now we'll only consider arrays, but in general, `Reduce` reduces a foldable data structure to a summary value one element at a time. We classify reductions by the binary function used, called a *reducer* or *folder*.
 
 |        | Direction     | Operator  | Initial Value | Type Signature            |
 | ------ | ------------- | --------- | ------------- | ------------------------- |
@@ -109,6 +109,43 @@ Ken Iverson coined `Reduce` in his 1962 book "A Programming Language", which int
 | Seduce | Associative   | Semigroup | Yes           | (A → A → A) → A → A[] → A |
 | FoldL  | Left-to-Right | Binary    | Yes           | (B → A → B) → B → A[] → B |
 | FoldR  | Right-to-Left | Binary    | Yes           | (A → B → B) → B → A[] → B |
+
+A **semigroup** is pairing of a data type with an associative binary operator on that type.
+
+```haskell
+-- Def'n of associativity for an operator/function 'op'.
+-- This must hold true for a type and operator to form a semigroup.
+op (op x y) z = op x (op y z)-- prefix notation
+(x `op` y) `op` z = x `op` (y `op` z)-- infix notation
+
+typeclass Semigroup a where
+    op :: a -> a -> a
+
+-- Integers form a semigroup under the operation of maximum
+instance Semigroup Int where
+    op = max
+```
+
+A **monoid** is a semigroup with an identity value.
+
+```haskell
+id `op` x = x-- Left Identity
+x `op` id = x-- Right Identity
+
+-- Integers form a monoid under the operation of multiply with an identity of 0
+typeclass Monoid a extends Semigroup a where
+    unit :: a
+    op :: a -> a -> a
+
+instance Monoid Int extends Semigroup Int where
+    unit = 0
+    op = multiply
+
+-- Strings form a monoid under the operation of union with an identity of ""
+instance Monoid String extends Semigroup String where
+    unit = ""
+    op = union
+```
 
 Language implementations of reduce/fold vary significantly, and many use a single function for every variation. For example, JavaScript and FSharp both throw if you don't provide an initial value for an empty list, unlike APL which infers the identity from the binary operator. More variations are possible: C++ has `fold_right_first` and `fold_left_first` which don't require an initial value, and `accumulate` with directionality defined by an iterator.
 
