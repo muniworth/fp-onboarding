@@ -104,7 +104,8 @@ Richard Feldman, "The Next Paradigm Shift in Programming", [ETE 2020](https://yo
 
 We encode effects as type-level functions `f` that send a type `a` of "pure
 values" to a type `f a` of "effectful values". Let's see how this plays out on
-the three kinds of effects from above.
+the three common effects mentioned above, namely exceptions, state, and file
+I/O.
 
 ### Exceptions
 
@@ -114,8 +115,8 @@ data Except e a = Success a | Failure e
 --   ^^^^^^ ^^^   ^^^^^^^ ^   ^^^^^^^ ^
 --     1     2       3    4      3    4
 ```
-> Haskell novices: Read this type declaration as follows:
-> 1. The name of the new type.
+> **Haskell novices**: Read this type declaration as follows:
+> 1. Name of the new type.
 > 2. Type parameters. I.e., `Except e a` is a type for any types `e` and `a`.
 >    You may know such type parameters as "generics" from other languages.
 > 3. Constructor names. In general, data types can have any number of
@@ -137,22 +138,21 @@ uncons xs = case xs of -- (2)
     x:xs -> Success (x, xs)
     [] -> Failure UnconsError
 ```
-> Haskell novices: Line (1) declares the type of `uncons`, which implicitly
+> **Haskell novices**: Line (1) declares the type of `uncons`, which implicitly
 > quantifies over each variable within that begins with a lower case letter
 > (just `a` in this case), so we could equivalently write
 > ```Haskell
 > uncons :: forall a. [a] -> Except UnconsError (a, [a])
 > ```
 > Line (2) implements `uncons` by pattern-matching on a list, a built-in type
-> defined approximately as
+> approximately defined as
 > ```Haskell
 > data List a = Nil | Cons a (List a)
 > ```
 > except we write `[a]` for `List a`, `[]` for `Nil`, and `x:xs` for
 > `Cons x xs`.
 
-Suppose we want to use `uncons` to pull, say, four elements off the start of a
-list:
+Let's use `uncons` to pull, say, four elements off the start of a list:
 ```Haskell
 uncons4 :: [a] -> Except UnconsError (a, a, a, a, [a])
 uncons4 xs0 = case uncons xs0 of
@@ -188,7 +188,7 @@ uncons4 xs0 =
                 bind (uncons xs3) \(x3, xs4) ->
                     Success (x0, x1, x2, x3, xs4)
 ```
-> Haskell novices: `\p -> e` is a lambda (i.e., function expression) with
+> **Haskell novices**: `\p -> e` is a lambda (i.e., function expression) with
 > pattern `p` and body `e`.
 
 Much better, although we still have to endure the excessive indentation for now.
@@ -201,6 +201,8 @@ catch :: Except e a -> (e -> Except f a) -> Except f a
 ```
 (In part, this exercise asks you to figure out what `catch` should do based on
 its type signature.)
+
+{ TODO: Another exercise? }
 
 ### State
 
@@ -388,6 +390,13 @@ example :: FileIO ()
 example = Open "foo.txt" (\h -> Read h (\s -> Write h (s <> s) (Pure ())))
 ```
 
+```Haskell
+data FileSystem = FileSystem (Map String String)
+data FileError = FileDoesNotExist
+
+interpret :: FileIO a -> State FileSystem (Except FileError a)
+```
+
 # Abstractions for Effects
 
 The notions of effect we're interested in all have some common structure that we
@@ -432,23 +441,22 @@ class Functor f => Applicative f where
 - **Homomorphism**: ``pure f `ap` pure x = pure (f x)``
 - **Interchange**: ``u `ap` pure x = pure (\f -> f x) `ap` u``
 
-{ TODO: examples: accumulating errors; context-free parsing? }
-
-{ TODO: abstract exercises: define `fmap` from `pure` and `ap`, proving that
-all applicatives are functors }
-
-### Exercise
+#### Exercise
 
 ```Haskell
-class Functor f => Monoidal f where
+class Functor f => Applicative' f where
     unit :: f ()
     cross :: f a -> f b -> f (a, b)
 ```
-- **Naturality**: ``map (f `bimap` g) (u `cross` v) = map f u `cross` map g v``
 - **Left identity**: ``map snd (unit `cross` v) = v``
 - **Right identity**: ``map fst (u `cross` unit) = u``
 - **Associativity**: ``map assoc (u `cross` (v `cross` w)) = (u `cross` v) `cross` w``
 { TODO: Exercise: implement monoidal with applicative and vice versa }
+
+{ TODO: examples: accumulating errors; context-free parsing? }
+
+{ TODO: abstract exercises: define `fmap` from `pure` and `ap`, proving that
+all applicatives are functors }
 
 { TODO: concrete examples: put examples from McBride and Paterson in a practical
 context }
@@ -466,6 +474,19 @@ with a twist (or with an "idiom", as McBride and Paterson say) }
 class Applicative f => Monad f where
     bind :: f a -> (a -> f b) -> f b
 ```
+- **Left identity**: ``pure a `bind` k = k a``
+- **Right identity**: ``m `bind` pure = m``
+- **Associativity**: ``m `bind` (\x -> k x `bind` l) = (m `bind` k) `bind` l``
+
+#### Exercise
+
+```Haskell
+class Applicative f => Monad' f where
+    join :: f (f a) -> f a
+```
+- **Left identity**: ``join . pure = id``
+- **Right identity**: ``pure . join = id``
+- **Associativity**: ``join . join = join . fmap join``
 
 { TODO: examples: short-circuiting errors }
 
