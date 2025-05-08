@@ -106,7 +106,7 @@ We encode effects as type-level functions `f` that send a type `a` of "pure
 values" to a type `f a` of "effectful values". Let's see how this plays out on
 the three effects mentioned above, namely failure, state, and file I/O.
 
-### Failure
+## Failure
 
 We encode the effect of failure, with failure detail of type `e`, as follows:
 ```Haskell
@@ -126,7 +126,7 @@ data Fallible e a = Success a | Failure e
 That is, an `Fallible e a` computation either succeeds, returning a value of
 type `a`, or it fails, returning an error of type `e`.
 
-#### Performing `Fallible e` Effects
+### Performing `Fallible e` Effects
 
 We previously claimed that despite encoding effects as pure data, we retain
 some means of performing those effects. In the case of `Fallible e` effects, we
@@ -134,13 +134,21 @@ get to choose what "perform"/"run" should mean --- a decided strength of
 realizing effects as ordinary values. For example, we could run `Fallible e`
 effects by transforming the output value and failure detail into a common type:
 ```Haskell
-runFallible :: (a -> b) -> (e -> b) -> Fallible e a -> b
-runFallible handleSuccess handleFailure = \case
+runFallible :: (a -> b) -> (e -> b) -> Fallible e a -> b -- (1)
+runFallible handleSuccess handleFailure = \case -- (2)
     Success a -> handleSuccess a
     Failure e -> handleFailure e
 ```
-> **Haskell novices**: `\case <cases...>` is syntactic sugar for
-> `\x -> case x of <cases...>`, where `\p -> e` is a lambda (i.e.,
+> **Haskell novices**: Line (1) declares the type of `runFallible`, which
+> implicitly quantifies over each variable within that begins with a lower case
+> letter (`a`, `b`, and `e` in this case), so we could equivalently write
+> ```Haskell
+> runFallible :: forall a b e. (a -> b) -> (e -> b) -> Fallible e a -> b
+> ```
+> Line (2) implements `runFallible` by accepting `handleSuccess` as an argument,
+> accepting `handleFailure` as an argument, and then pattern-matching on a
+> third argument. The "`\case `<*cases*>" notation is syntactic sugar for
+> "`\x -> case x of `<*cases*>", where `\p -> e` is a lambda (i.e.,
 > function expression) with pattern `p` and body `e`.
 
 Alternatively, we could ignore all good sense and handle failures with Haskell's
@@ -152,8 +160,13 @@ runFallibleScary = \case
     Success a -> a
     Failure e -> throw e
 ```
+> **Haskell novices**: "`(Exception e) => ...`" is a *type class constraint*.
+> Type classes are collections of methods that types can implement, similar to
+> traits in Rust or interfaces in Java. A type class constraint `C a` demands
+> that `a` implements the `C` type class, licensing access to the methods of `C`
+> within the scope of the constraint. We'll see much more of type classes later.
 
-#### Example
+### Example
 
 Let's create a function `uncons` for splitting a list into its head (first
 element) and tail (all but first element), or failing if the input list is
@@ -161,19 +174,13 @@ empty:
 ```Haskell
 data UnconsError = UnconsError
 
-uncons :: [a] -> Fallible UnconsError (a, [a]) -- (1)
-uncons xs = case xs of -- (2)
+uncons :: [a] -> Fallible UnconsError (a, [a])
+uncons = \case
     x:xs -> Success (x, xs)
     [] -> Failure UnconsError
 ```
-> **Haskell novices**: Line (1) declares the type of `uncons`, which implicitly
-> quantifies over each variable within that begins with a lower case letter
-> (just `a` in this case), so we could equivalently write
-> ```Haskell
-> uncons :: forall a. [a] -> Fallible UnconsError (a, [a])
-> ```
-> Line (2) implements `uncons` by pattern-matching on a list, a built-in type
-> approximately defined as
+> **Haskell novices**: The definition of `uncons` pattern-matches on a list, a
+> built-in type approximately defined as
 > ```Haskell
 > data List a = Nil | Cons a (List a)
 > ```
@@ -217,7 +224,7 @@ uncons4 xs0 =
 ```
 Much better, although we still must endure the excessive indentation (for now).
 
-#### Exercise
+### Exercise
 
 Implement the following function for catching errors:
 ```Haskell
@@ -228,11 +235,11 @@ its type signature.)
 
 What is the relationship between `bind` and `catch`?
 
-#### Exercise
+### Exercise
 
 { TODO: We should probably have another one. }
 
-### State
+## State
 
 We encode the effect of state of type `s` as a function from an initial state
 value to an output value paired with a final state value:
@@ -276,7 +283,7 @@ s0 = (0, 1)
 (f5, _) = runState fib s3
 ```
 
-#### Example
+### Example
 
 Let's write a function that checks if a string contains "xyz". This function
 should have the following signature:
@@ -340,7 +347,7 @@ This solution should seem significantly less readable than using a local
 mutable variable of type `Q`, like you might in an imperative language. Later,
 we introduce effect abstractions to improve readability.
 
-#### Exercise
+### Exercise
 
 Implement the following fundamental operations of the state effect:
 ```Haskell
@@ -372,7 +379,7 @@ seq sa sb = State \s ->
     in runState sb s'           -- 2. Run sb with initial state value s'.
 ```
 
-#### Exercise
+### Exercise
 
 Suppose we instead define the state effect as follows:
 ```Haskell
@@ -392,7 +399,7 @@ interpret :: State' s a -> State s a
     You should first determine what "resonable" should mean.
 </details>
 
-### File I/O
+## File I/O
 
 Unlike failure and state, there is no standard encoding of file I/O effects,
 but we could encode basic file I/O effects as follows:
@@ -469,7 +476,7 @@ class Functor f => Applicative f where
 - **Homomorphism**: ``pure f `ap` pure x = pure (f x)``
 - **Interchange**: ``u `ap` pure x = pure (\f -> f x) `ap` u``
 
-#### Exercise
+### Exercise
 
 ```Haskell
 class Functor f => Applicative' f where
@@ -506,7 +513,7 @@ class Applicative f => Monad f where
 - **Right identity**: ``m `bind` pure = m``
 - **Associativity**: ``m `bind` (\x -> k x `bind` l) = (m `bind` k) `bind` l``
 
-#### Exercise
+### Exercise
 
 ```Haskell
 class Applicative f => Monad' f where
