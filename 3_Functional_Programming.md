@@ -51,7 +51,7 @@ viewed as an interaction with the ambient execution environment. (The "execution
 environment" is merely a conceptual device; it doesn't necessarily have some
 cohesive existence during the execution of a program.) Common effects include
 the following:
-- **Exceptions**: Programs interact with their execution environment by asking
+- **Failure**: Programs interact with their execution environment by asking
   it to abort execution, often with some detail for why execution must abort
   (e.g., `throw error("Something broke!")`).
 - **State**: The environment records the current value of the state, and
@@ -104,36 +104,64 @@ Richard Feldman, "The Next Paradigm Shift in Programming", [ETE 2020](https://yo
 
 We encode effects as type-level functions `f` that send a type `a` of "pure
 values" to a type `f a` of "effectful values". Let's see how this plays out on
-the three common effects mentioned above, namely exceptions, state, and file
-I/O.
+the three effects mentioned above, namely failure, state, and file I/O.
 
-### Exceptions
+### Failure
 
-We encode the effect of exceptions of type `e` as follows:
+We encode the effect of failure, with failure detail of type `e`, as follows:
 ```Haskell
-data Except e a = Success a | Failure e
---   ^^^^^^ ^^^   ^^^^^^^ ^   ^^^^^^^ ^
---     1     2       3    4      3    4
+data Fallible e a = Success a | Failure e
+--   ^^^^^^^^ ^^^   ^^^^^^^ ^   ^^^^^^^ ^
+--       1     2       3    4      3    4
 ```
 > **Haskell novices**: Read this type declaration as follows:
 > 1. Name of the new type.
-> 2. Type parameters. I.e., `Except e a` is a type for any types `e` and `a`.
+> 2. Type parameters. I.e., `Fallible e a` is a type for any types `e` and `a`.
 >    You may know such type parameters as "generics" from other languages.
 > 3. Constructor names. In general, data types can have any number of
 >    constructors, but here we only require two.
 > 4. Fields. In general, each constructor can have multiple fields, but here we
 >    only require one per constructor.
 
-That is, an `Except e a` computation either succeeds, returning a value of type
-`a`, or it fails, returning an error of type `e`.
+That is, an `Fallible e a` computation either succeeds, returning a value of
+type `a`, or it fails, returning an error of type `e`.
 
-With `Except`, we can, for example, create a function `uncons` for splitting a
-list into its head (first element) and tail (all but first element), or failing
-if the input list is empty:
+#### Performing `Fallible e` Effects
+
+We previously claimed that despite encoding effects as pure data, we retain
+some means of performing those effects. In the case of `Fallible e` effects, we
+get to choose what "perform"/"run" should mean --- a decided strength of
+realizing effects as ordinary values. For example, we could run `Fallible e`
+effects by transforming the output value and failure detail into a common type:
+```Haskell
+runFallible :: (a -> b) -> (e -> b) -> Fallible e a -> b
+runFallible handleSuccess handleFailure = \case
+    Success a -> handleSuccess a
+    Failure e -> handleFailure e
+```
+> **Haskell novices**: `\case <cases...>` is syntactic sugar for
+> `\x -> case x of <cases...>`, where `\p -> e` is a lambda (i.e.,
+> function expression) with pattern `p` and body `e`.
+
+Alternatively, we could ignore all good sense and handle failures with Haskell's
+exception mechanism:
+```Haskell
+-- Don't do this!
+runFallibleScary :: (Exception e) => Fallible e a -> a
+runFallibleScary = \case
+    Success a -> a
+    Failure e -> throw e
+```
+
+#### Example
+
+Let's create a function `uncons` for splitting a list into its head (first
+element) and tail (all but first element), or failing if the input list is
+empty:
 ```Haskell
 data UnconsError = UnconsError
 
-uncons :: [a] -> Except UnconsError (a, [a]) -- (1)
+uncons :: [a] -> Fallible UnconsError (a, [a]) -- (1)
 uncons xs = case xs of -- (2)
     x:xs -> Success (x, xs)
     [] -> Failure UnconsError
@@ -142,7 +170,7 @@ uncons xs = case xs of -- (2)
 > quantifies over each variable within that begins with a lower case letter
 > (just `a` in this case), so we could equivalently write
 > ```Haskell
-> uncons :: forall a. [a] -> Except UnconsError (a, [a])
+> uncons :: forall a. [a] -> Fallible UnconsError (a, [a])
 > ```
 > Line (2) implements `uncons` by pattern-matching on a list, a built-in type
 > approximately defined as
@@ -152,9 +180,10 @@ uncons xs = case xs of -- (2)
 > except we write `[a]` for `List a`, `[]` for `Nil`, and `x:xs` for
 > `Cons x xs`.
 
-Let's use `uncons` to pull, say, four elements off the start of a list:
+We can repeatedly apply `uncons` to pull, say, four elements off the start of a
+list:
 ```Haskell
-uncons4 :: [a] -> Except UnconsError (a, a, a, a, [a])
+uncons4 :: [a] -> Fallible UnconsError (a, a, a, a, [a])
 uncons4 xs0 = case uncons xs0 of
     Success (x0, xs1) -> case uncons xs1 of
         Success (x1, xs2) -> case uncons xs2 of
@@ -170,10 +199,8 @@ manual error check after each call to `uncons`. Following good programming
 practice of abstracting out duplicate code, let's write a function `bind` that
 automatically propagates errors, allowing us to focus on the success case:
 ```Haskell
-bind :: Except e a -> (a -> Except e b) -> Except e b
-bind ea eb = case ea of
-    Success a -> eb a
-    Failure e -> Failure e
+bind :: Fallible e a -> (a -> Fallible e b) -> Fallible e b
+bind ea eb = runFallible eb Failure ea
 ```
 Intuitively, `bind` sequences two failible computations, where the second
 computation can depend on the output value of the first computation, such that
@@ -188,21 +215,22 @@ uncons4 xs0 =
                 bind (uncons xs3) \(x3, xs4) ->
                     Success (x0, x1, x2, x3, xs4)
 ```
-> **Haskell novices**: `\p -> e` is a lambda (i.e., function expression) with
-> pattern `p` and body `e`.
-
-Much better, although we still have to endure the excessive indentation for now.
+Much better, although we still must endure the excessive indentation (for now).
 
 #### Exercise
 
 Implement the following function for catching errors:
 ```Haskell
-catch :: Except e a -> (e -> Except f a) -> Except f a
+catch :: Fallible e a -> (e -> Fallible f a) -> Fallible f a
 ```
 (In part, this exercise asks you to figure out what `catch` should do based on
 its type signature.)
 
-{ TODO: Another exercise? }
+What is the relationship between `bind` and `catch`?
+
+#### Exercise
+
+{ TODO: We should probably have another one. }
 
 ### State
 
@@ -360,13 +388,13 @@ interpret :: State' s a -> State s a
 ```
 
 <details>
-    <summary>**Hint**</summary>
+    <summary><strong>Hint</strong></summary>
     You should first determine what "resonable" should mean.
 </details>
 
 ### File I/O
 
-Unlike state and exceptions, there is no standard encoding of file I/O effects,
+Unlike failure and state, there is no standard encoding of file I/O effects,
 but we could encode basic file I/O effects as follows:
 ```Haskell
 data FileIO a
@@ -394,7 +422,7 @@ example = Open "foo.txt" (\h -> Read h (\s -> Write h (s <> s) (Pure ())))
 data FileSystem = FileSystem (Map String String)
 data FileError = FileDoesNotExist
 
-interpret :: FileIO a -> State FileSystem (Except FileError a)
+interpret :: FileIO a -> State FileSystem (Fallible FileError a)
 ```
 
 # Abstractions for Effects
