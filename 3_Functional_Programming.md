@@ -5,7 +5,7 @@ the language ISWIM [?]. However, he didn't provide a definition for FP, leaving
 the term open for debate. Most attempts at defining functional programming
 resort to referencing particular language features, such as closures and lack of
 mutable state, but no language feature is essential to FP. Rather, functional
-programming builds around one core tenet, **compositionality**, the ability to
+programming builds around one core tenet, ***compositionality***, the ability to
 practically reason about programs by breaking them into components that can in
 turn be understood independently.
 
@@ -33,12 +33,8 @@ interconnectedness of large components in large programs quickly becomes
 unmanageable. Indeed, the inapplicability of the principle of compositionality
 is the very definition of complexity [?].
 
-Functional programming is a cult:
-- Programmers who don't value composition don't understand why FP matters.
-- It's difficult to explain why FP is valuable.
-- Once you see the value of composition, you never want to leave.
-
-We drink the coolaid. The value of compositional reasoning can only be learned through experience, but we now take it for granted and explore its consequences.
+The value of compositional reasoning can only be learned through experience, but
+we now take it for granted and explore its consequences.
 
 # Effects
 
@@ -250,12 +246,13 @@ value to an output value paired with a final state value:
 data State s a = State (s -> (a, s))
 ```
 
-Like with `Fallible e`, `State s` has pure fragment containing computations that
-don't get or set the state. We lift values into the pure fragment with `pure`:
+Like with `Fallible e`, `State s` has a pure fragment containing computations
+that don't really get or set the state, and we enter it with `pure`:
 ```Haskell
 pure :: a -> State s a
 pure a = State \s -> (a, s)
 ```
+
 We will also find it convenient to have a suggestively-named function to strip
 off the `State` constructor of a state action:
 ```Haskell
@@ -422,25 +419,47 @@ set :: s -> State s ()
 
 ## File I/O
 
-Unlike failure and state, there is no standard encoding of file I/O effects,
-but we could encode basic file I/O effects as follows:
+Unlike failure and state, there's no standard encoding of file I/O effects, in
+particular because there's no standard precise definition of file I/O. However,
+for sake of example, let's encode basic file I/O effects as follows:
 ```Haskell
 type FileName = String
 type FileHandle = Int
 type FileContents = String
+
 data FileIO a
   = Pure a -- No/trivial effects
   | Open FileName (FileHandle -> FileIO a) -- Like "with open(..., "r+") ..." in Python
   | Read FileHandle (FileContents -> FileIO a) -- Read entire file
   | Write FileHandle FileContents (FileIO a) -- Overwrite entire file
 ```
-We interpret a `FileIO a` computation as either
+> **Haskell novices**: `type` declarations create *type aliases*.
+
+Informally, we interpret a `FileIO a` computation as either
 - performing no file I/O effects;
-- opening a file by name, creating a file handle and passing it to a
+- opening a file by name, creating a file handle, and passing the handle to a
   continuation;
 - reading the file with a given handle, passing the contents to a continuation;
 - writing a string to the file with a given handle, then proceeding with a
   continuation.
+> **Haskell novices**: The Haskell community says "continuation" to mean "the
+> thing to do next", usually denoted with a `k`.
+
+Like with `Fallible e` and `State s`, `FileIO` has a pure fragment containing
+computations that don't really perform file I/O, and we enter it with `pure`:
+```Haskell
+pure :: a -> FileIO a
+pure = Pure
+
+open :: FileName -> FileIO FileHandle
+open x = Open x pure
+
+read :: FileHandle -> FileIO FileContents
+read h = Read h pure
+
+write :: FileHandle -> FileContents -> FileIO ()
+read h s = Write h s (pure ())
+```
 
 For example, here's a computation that opens "foo.txt" and duplicates its
 contents (`<>` is string concatenation):
