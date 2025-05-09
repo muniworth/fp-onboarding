@@ -127,8 +127,22 @@ data Fallible e a = Success a | Failure e
 > 4. Fields. In general, each constructor can have multiple fields, but here we
 >    only require one per constructor.
 
-That is, an `Fallible e a` computation either succeeds, returning a value of
+That is, a `Fallible e a` computation either succeeds, returning a value of
 type `a`, or it fails, returning an error of type `e`.
+
+Immediately from the definition of `Fallible` we get two essential operations
+of failure effects:
+```Haskell
+pure :: a -> Fallible e a
+pure = Success
+
+fail :: e -> Fallible e a
+fail = Failure
+```
+(Of course, we could just as well directly use `Success` and `Failure` instead
+of `pure` and `fail`.) We choose the name "`pure`", because it lifts values into
+the "pure fragment" of `Fallible e`, i.e., the part of `Fallible e` that doesn't
+really have any failure effect.
 
 For example, let's create a function `uncons` for splitting a list into its head
 (first element) and tail (all but first element), or failing if the input list
@@ -138,8 +152,8 @@ data UnconsError = UnconsError
 
 uncons :: [a] -> Fallible UnconsError (a, [a]) -- (1)
 uncons = \case -- (2)
-    x:xs -> Success (x, xs)
-    [] -> Failure UnconsError
+    x:xs -> pure (x, xs)
+    [] -> fail UnconsError
 ```
 > **Haskell novices**: Line (1) declares the type of `uncons`, which implicitly
 > quantifies over each variable within that begins with a lower case letter
@@ -165,11 +179,11 @@ uncons4 xs0 = case uncons xs0 of
     Success (x0, xs1) -> case uncons xs1 of
         Success (x1, xs2) -> case uncons xs2 of
             Success (x2, xs3) -> case uncons xs3 of
-                Success (x3, xs4) -> Success (x0, x1, x2, x3, xs4)
-                Failure e -> Failure e
-            Failure e -> Failure e
-        Failure e -> Failure e
-    Failure e -> Failure e
+                Success (x3, xs4) -> pure (x0, x1, x2, x3, xs4)
+                Failure e -> fail e
+            Failure e -> fail e
+        Failure e -> fail e
+    Failure e -> fail e
 ```
 Yikes! Often, we want implicit propagation of errors, but here we suffer a
 manual error check after each call to `uncons`. Following good programming
@@ -179,9 +193,9 @@ automatically propagates errors, allowing us to focus on the success case:
 bind :: Fallible e a -> (a -> Fallible e b) -> Fallible e b
 bind fa fb = case fa of
     Success a -> fb a
-    Failure e -> Failure e
+    Failure e -> fail e
 ```
-Intuitively, `bind` sequences two failible computations, where the second
+Intuitively, `bind` sequences two fallible computations, where the second
 computation can depend on the output value of the first computation, such that
 the composite computation fails if either input computation fails.
 
@@ -192,7 +206,7 @@ uncons4 xs0 =
         bind (uncons xs1) \(x1, xs2) ->
             bind (uncons xs2) \(x2, xs3) ->
                 bind (uncons xs3) \(x3, xs4) ->
-                    Success (x0, x1, x2, x3, xs4)
+                    pure (x0, x1, x2, x3, xs4)
 ```
 Much better, although we still must endure the excessive indentation (for now).
 
@@ -221,10 +235,10 @@ and `bind`, implement `catch`, and using only `dual` and `catch`, implement
 ### Summary
 
 ```Haskell
-data Fallible e a = Success a | Failure e
-succeed :: a -> Fallible e a
-fail :: e -> Fallible e a
+data Fallible e a
+pure :: a -> Fallible e a
 bind :: Fallible e a -> (a -> Fallible e b) -> Fallible e b
+fail :: e -> Fallible e a
 catch :: Fallible e a -> (e -> Fallible f a) -> Fallible f a
 ```
 
@@ -236,21 +250,29 @@ value to an output value paired with a final state value:
 data State s a = State (s -> (a, s))
 ```
 
-We will find it convenient to have a suggestively-named function to strip off
-the `State` constructor of a state action:
+Like with `Fallible e`, `State s` has pure fragment containing computations that
+don't get or set the state. We lift values into the pure fragment with `pure`:
+```Haskell
+pure :: a -> State s a
+pure a = State \s -> (a, s)
+```
+We will also find it convenient to have a suggestively-named function to strip
+off the `State` constructor of a state action:
 ```Haskell
 runState :: State s a -> s -> (a, s)
 runState (State f) = f
 ```
 
-For example, let's write a 64-bit linear congruential pseudorandom number
-generator:
+For example, let's write a 64-bit pseudorandom number generator:
 ```Haskell
+-- Generate a stream x[i] of psuedorandom numbers of form
+--     x[i+1] = (a * x[i] + c) mod m
+-- for parameters a, c, and m, a so-called linear congruential generator. We
+-- take parameters from Knuth. The mod operation is implicit, because m = 2^64.
 rand :: State Word64 Word64
 rand = State \s ->
     let x = 6364136223846793005 * s + 1442695040888963407
     in (x, x)
--- Parameters from Knuth [?].
 ```
 We can repeatedly run `rand` to generate, say, four random numbers:
 ```Haskell
@@ -261,12 +283,10 @@ rand4 = State \s0 -> case runState rand s0 of
             (x2, s3) -> case runState rand s3 of
                 (x3, s4) -> ((x0, x1, x2, x3), s4)
 ```
-Yikes! The
-
-Often, we want implicit propagation of errors, but here we suffer a
-manual error check after each call to `uncons`. Following good programming
+Yikes! Often, we want implicit threading of state between state actions, but
+here we suffer manual plumbing of the state value. Following good programming
 practice of abstracting out duplicate code, let's write a function `bind` that
-automatically propagates errors, allowing us to focus on the success case:
+automatically threads state:
 ```Haskell
 bind :: State s a -> (a -> State s b) -> State s b
 bind sa sb = State \s ->
@@ -274,36 +294,49 @@ bind sa sb = State \s ->
         (a, s') -> runState (sb a) s'
 ```
 Intuitively, `bind` sequences two stateful computations, where the second
-computation can depend on the output value of the first computation,
-the composite computation fails if either input computation fails.
+computation can depend on the output value of the first computation.
 
 With the help of `bind`, `rand4` simplifies to the following:
 ```Haskell
 rand4 = bind rand \x0 ->
     bind rand \x1 ->
         bind rand \x2 ->
-            bind rand \x3 -> pure (x0, x1, x2, x3)
+            bind rand \x3 ->
+                pure (x0, x1, x2, x3)
 ```
 Much better, although we still must endure the excessive indentation (for now).
 
-### Example
+### Exercise: `get` and `set`
+
+Implement the following fundamental operations of the state effect:
+```Haskell
+-- Return the current state, leaving the state unchanged.
+get :: State s s
+
+-- Set the state and return the unit.
+set :: s -> State s ()
+```
+
+### Example: Finite-State Automaton for Substring Containment
 
 Let's write a function that checks if a string contains "xyz". This function
 should have the following signature:
 ```Haskell
 contains'xyz' :: String -> Bool
 ```
-(Haskell allows single quotes in names.) Internally, this function will inspect
-its input character-by-character, and as we move from one character to the next,
-we must remember how much of "xyz" we've seen so far. We'll record this state
-with type `Q`:
+> **Haskell novices**: Haskell allows single quotes in names, except at the
+> beginning.
+
+Internally, this function will inspect its input character-by-character, and as
+we move from one character to the next, we must remember how much of "xyz" we've
+seen so far. We'll record this state with type `Q`:
 ```Haskell
 data Q = Seen'' | Seen'x' | Seen'xy' | Seen'xyz'
 ```
 Each input character changes the state according to the following function:
 ```Haskell
 transition :: Char -> State Q ()
-transition nextChar = State \currState ->
+transition nextChar = bind get \currState ->
     case (currState, nextChar) of
         -- This is not the most economical set of cases.
         (Seen'', 'x') -> set Seen'x'
@@ -316,73 +349,40 @@ transition nextChar = State \currState ->
         (Seen'xy', _) -> set Seen''
         (Seen'xyz', _) -> set Seen'xyz'
 ```
+Once we've scanned the entire input, we get the state to see if we've seen
+"xyz":
 ```Haskell
 haveSeen'xyz' :: State Q Bool
-haveSeen'xyz' = State \case -- Switch on current state
-    Seen'xyz' -> (True, Seen'xyz')
-    q -> (False, q)
+haveSeen'xyz' = bind get \case
+    Seen'xyz' -> pure True
+    _ -> pure False
 ```
-
-We realize this table as the following function, which augments augments
-`contains'xyz'` with a `State Q` effect:
+With these two helper functions, we can implement a stateful version of
+`contains'xyz'`:
 ```Haskell
 statefulContains'xyz' :: String -> State Q Bool
-statefulContains'xyz' = \case -- Switch on input string
+statefulContains'xyz' = \case
     [] -> haveSeen'xyz'
-    c:cs -> transition c `seq` statefulContains'xyz' cs
-
--- Unwrap a state computation.
-runState :: State s a -> s -> (a, s)
-runState (State f) = f
+    c:cs -> bind (transition c) \() -> statefulContains'xyz' cs
 ```
-We now implement the original `contains'xyz'` function as
+Finally, we implement the original `contains'xyz'` function as
 `statefulContains'xyz'` with an initial state of `Seen''`:
 ```Haskell
 contains'xyz' cs = fst (runState (statefulContains'xyz' cs) Seen'')
-
--- fst projects the first component out of a pair. In this case, we use it to
--- get the output from a state computation, ignoring the final state.
-fst :: (a, b) -> a
-fst (a, _) = a
 ```
+> **Haskell novices**: `fst` projects the first component out of a pair:
+> ```Haskell
+> fst :: (a, b) -> a
+> fst (a, _) = a
+> ```
+> Here we use `fst` to get the output from a state computation, ignoring the
+> final state.
 
-This solution should seem significantly less readable than using a local
-mutable variable of type `Q`, like you might in an imperative language. Later,
-we introduce effect abstractions to improve readability.
+### Exercise: `map` and `andThen`
 
-### Exercise
+{ TODO: Exercise to clean up `haveSeen'xyz'` and `statefulContains'xyz'`? }
 
-Implement the following fundamental operations of the state effect:
-```Haskell
-
--- Return the given value, leaving the state unchanged.
-pure :: a -> State s a
-pure a = State \s -> (a, s)
-
--- Return the current state, leaving the state unchanged.
-get :: State s s
-get = State \s -> (s, s)
-
--- Set the state and return the unit.
-set :: s -> State s ()
-set s = State \_ -> ((), s)
-
--- Sequence two state computations, where the second state computation can
--- depend on the output value of the first state computation.
-bind :: State s a -> (a -> State s b) -> State s b
-bind sa sb = State \s ->
-    let (a, s') = runState sa s
-    in runState (sb a) s'
-
--- Sequence two state effects, using the final state of the first as the initial
--- state of the second.
-seq :: State s a -> State s b -> State s b
-seq sa sb = State \s ->
-    let (_, s') = runState sa s -- 1. Run sa, getting its final state value s'.
-    in runState sb s'           -- 2. Run sb with initial state value s'.
-```
-
-### Exercise
+### Exercise: An Alternative Representation of State Effects
 
 Suppose we instead define the state effect as follows:
 ```Haskell
@@ -391,22 +391,33 @@ data State' s a
   | Get (s -> State' s a)
   | Set s (State' s a)
 ```
-Implement a function that interprets `State'` as `State` "reasonably", with the
-following type signature:
-```Haskell
-interpret :: State' s a -> State s a
-```
 
-<details>
-    <summary><strong>Hint</strong></summary>
-    You should first determine what "resonable" should mean.
-</details>
+1. Implement the fundamental state operations for `State' s`:
+   ```Haskell
+   pure' :: a -> State' s a
+   bind' :: State' s a -> (a -> State' s b) -> State' s b
+   get' :: State' s s
+   set' :: s -> State' s ()
+   ```
+
+2. (Difficult!) Show that `State` and `State'` are equivalent by implementing
+   functions that interpret `State s` effects in terms of `State' s` effects and
+   vice versa:
+   ```Haskell
+   interpretA :: State s a -> State' s a
+   interpretB :: State' s a -> State s a
+   ```
+   **Hint**: What properties should `interpretA` and `interpretB` have? How
+   should `get` and `get'` relate? What about `set` and `set'`?
 
 ### Summary
 
 ```Haskell
-data State s a = State (s -> (a, s))
-pure ::
+data State s a
+pure :: a -> State s a
+bind :: State s a -> (a -> State s b) -> State s b
+get :: State s s
+set :: s -> State s ()
 ```
 
 ## File I/O
