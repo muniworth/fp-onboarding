@@ -1,3 +1,5 @@
+{ TODO: Search for "?" and fill in numbers.  }
+
 # Definition of Functional Programming
 
 In 1966, Peter Landin coined the term "Functional Programming" (FP) to describe
@@ -206,7 +208,7 @@ uncons4 xs0 =
 ```
 Much better, although we still must endure the excessive indentation (for now).
 
-### Exercise: `catch`
+### Exercise ?: `catch`
 
 Implement the following function for catching errors:
 ```Haskell
@@ -215,7 +217,7 @@ catch :: Fallible e a -> (e -> Fallible f a) -> Fallible f a
 (In part, this exercise asks you to figure out what `catch` should do based on
 its type signature.)
 
-### Exercise: The Duality of Success and Failure
+### Exercise ?: The Duality of Success and Failure
 
 Let `dual` be the following function:
 ```Haskell
@@ -303,7 +305,7 @@ rand4 = bind rand \x0 ->
 ```
 Much better, although we still must endure the excessive indentation (for now).
 
-### Exercise: `get` and `set`
+### Exercise ?: `get` and `set`
 
 Implement the following fundamental operations of the state effect:
 ```Haskell
@@ -375,11 +377,11 @@ contains'xyz' cs = fst (runState (statefulContains'xyz' cs) Seen'')
 > Here we use `fst` to get the output from a state computation, ignoring the
 > final state.
 
-### Exercise: `map` and `andThen`
+### Exercise ?: `map` and `andThen`
 
 { TODO: Exercise to clean up `haveSeen'xyz'` and `statefulContains'xyz'`? }
 
-### Exercise: An Alternative Representation of State Effects
+### Exercise ?: An Alternative Representation of State Effects
 
 Suppose we instead define the state effect as follows:
 ```Haskell
