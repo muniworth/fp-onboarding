@@ -186,25 +186,32 @@ uncons4 xs0 = case uncons xs0 of
 ```
 Yikes! Often, we want implicit propagation of errors, but here we suffer a
 manual error check after each call to `uncons`. Following good programming
-practice of abstracting out duplicate code, let's write a function `bind` that
-automatically propagates errors, allowing us to focus on the success case:
+practice of abstracting out duplicate code, let's write a function `(>>=)`
+(pronounced "bind") that automatically propagates errors, allowing us to focus
+on the success case:
 ```Haskell
-bind :: Fallible e a -> (a -> Fallible e b) -> Fallible e b
-bind fa fb = case fa of
+(>>=) :: Fallible e a -> (a -> Fallible e b) -> Fallible e b
+fa >>= fb = case fa of
     Success a -> fb a
     Failure e -> fail e
 ```
-Intuitively, `bind` sequences two fallible computations, where the second
+> **Haskell novices**: Functions with a symbolic name, like "`>>=`", use infix
+> notation.
+>
+> Wrap an infix function in parentheses to use prefix notation. For example,
+> `x >>= y` is equivalent to `(>>=) x y`.
+
+Intuitively, `(>>=)` sequences two fallible computations, where the second
 computation can depend on the output value of the first computation, such that
 the composite computation fails if either input computation fails.
 
-With the help of `bind`, `uncons4` simplifies to the following:
+With the help of `(>>=)`, `uncons4` simplifies to the following:
 ```Haskell
 uncons4 xs0 =
-    bind (uncons xs0) \(x0, xs1) ->
-        bind (uncons xs1) \(x1, xs2) ->
-            bind (uncons xs2) \(x2, xs3) ->
-                bind (uncons xs3) \(x3, xs4) ->
+    uncons xs0 >>= \(x0, xs1) ->
+        uncons xs1 >>= \(x1, xs2) ->
+            uncons xs2 >>= \(x2, xs3) ->
+                uncons xs3 >>= \(x3, xs4) ->
                     pure (x0, x1, x2, x3, xs4)
 ```
 Much better, although we still must endure the excessive indentation (for now).
@@ -227,16 +234,16 @@ dual = \case
     Success a -> Failure a
     Failure e -> Success e
 ```
-Use `dual` to equationally relate `bind` and `catch`. That is, using only `dual`
-and `bind`, implement `catch`, and using only `dual` and `catch`, implement
-`bind`.
+Use `dual` to equationally relate `(>>=)` and `catch`. That is, using only
+`dual` and `(>>=)`, implement `catch`, and using only `dual` and `catch`,
+implement `(>>=)`.
 
 ### Summary
 
 ```Haskell
 data Fallible e a
 pure :: a -> Fallible e a
-bind :: Fallible e a -> (a -> Fallible e b) -> Fallible e b
+(>>=) :: Fallible e a -> (a -> Fallible e b) -> Fallible e b
 fail :: e -> Fallible e a
 catch :: Fallible e a -> (e -> Fallible f a) -> Fallible f a
 ```
@@ -285,23 +292,23 @@ rand4 = State \s0 -> case runState rand s0 of
 ```
 Yikes! Usually we want the state to implicitly thread between state actions, but
 here we suffer manual plumbing of the state value. Following good programming
-practice of abstracting out duplicate code, let's write a function `bind` that
+practice of abstracting out duplicate code, let's write a function `(>>=)` that
 automatically threads state:
 ```Haskell
-bind :: State s a -> (a -> State s b) -> State s b
-bind sa sb = State \s ->
+(>>=) :: State s a -> (a -> State s b) -> State s b
+sa >>= sb = State \s ->
     case runState sa s of
         (a, s') -> runState (sb a) s'
 ```
-Intuitively, `bind` sequences two stateful computations, where the second
+Intuitively, `(>>=)` sequences two stateful computations, where the second
 computation can depend on the output value of the first computation.
 
-With the help of `bind`, `rand4` simplifies to the following:
+With the help of `(>>=)`, `rand4` simplifies to the following:
 ```Haskell
-rand4 = bind rand \x0 ->
-    bind rand \x1 ->
-        bind rand \x2 ->
-            bind rand \x3 ->
+rand4 = rand >>= \x0 ->
+    rand >>= \x1 ->
+        rand >>= \x2 ->
+            rand >>= \x3 ->
                 pure (x0, x1, x2, x3)
 ```
 Much better, although we still must endure the excessive indentation (for now).
@@ -336,7 +343,7 @@ data Q = Seen'' | Seen'x' | Seen'xy' | Seen'xyz'
 Each input character changes the state according to the following function:
 ```Haskell
 transition :: Char -> State Q ()
-transition nextChar = bind get \currState ->
+transition nextChar = get >>= \currState ->
     case (currState, nextChar) of
         -- This is not the most economical set of cases.
         (Seen'', 'x') -> set Seen'x'
@@ -353,7 +360,7 @@ Once we've scanned the entire input, we get the state to check if we've seen
 "xyz":
 ```Haskell
 haveSeen'xyz' :: State Q Bool
-haveSeen'xyz' = bind get \case
+haveSeen'xyz' = get >>= \case
     Seen'xyz' -> pure True
     _ -> pure False
 ```
@@ -363,7 +370,7 @@ With these two helper functions, we can implement a stateful version of
 statefulContains'xyz' :: String -> State Q Bool
 statefulContains'xyz' = \case
     [] -> haveSeen'xyz'
-    c:cs -> bind (transition c) \() -> statefulContains'xyz' cs
+    c:cs -> transition c >>= \() -> statefulContains'xyz' cs
 ```
 Finally, we implement the original `contains'xyz'` function as
 `statefulContains'xyz'` with an initial state of `Seen''`:
@@ -380,7 +387,7 @@ contains'xyz' cs = fst (runState (statefulContains'xyz' cs) Seen'')
 
 ### Exercise ?: `map`
 
-In the implementation of `haveSeen'xyz'`, the second computation of the `bind`
+In the implementation of `haveSeen'xyz'`, the second computation of the `(>>=)`
 is always pure. Write a function
 ```Haskell
 map :: (a -> b) -> State s a -> State s b
@@ -419,7 +426,7 @@ data State' s a
 ```Haskell
 data State s a
 pure :: a -> State s a
-bind :: State s a -> (a -> State s b) -> State s b
+(>>=) :: State s a -> (a -> State s b) -> State s b
 get :: State s s
 set :: s -> State s ()
 ```
@@ -488,20 +495,20 @@ duplicateContents = Exists "foo.txt" \case
 
 Now, try to write `duplicateContents` using `exists`, `read`, and `write` in
 place of `Exists`, `Read`, and `Write`. You'll find we require an analogue of
-`Fallible e` and `State s`'s `bind`:
+`Fallible e` and `State s`'s `(>>=)`:
 ```Haskell
-bind :: FileIO a -> (a -> FileIO b) -> FileIO b
-bind fa fb = case fa of
+(>>=) :: FileIO a -> (a -> FileIO b) -> FileIO b
+fa >>= fb = case fa of
     Pure a -> fb a
-    Exists x k -> Exists x \e -> bind (k e) fb
-    Read x k -> Read x \s -> bind (k s) fb
-    Write x s k -> Write x s (bind k fb)
-    Delete x k -> Delete x (bind k fb)
+    Exists x k -> Exists x \e -> k e >>= fb
+    Read x k -> Read x \s -> k s >>= fb
+    Write x s k -> Write x s (k >>= fb)
+    Delete x k -> Delete x (k >>= fb)
 ```
-Using `bind`, we can rewrite `duplicateContents` as follows:
+Using `(>>=)`, we can rewrite `duplicateContents` as follows:
 ```Haskell
-duplicateContents = bind (exists "foo.txt") \case
-    True -> bind (read "foo.txt") \s ->
+duplicateContents = exists "foo.txt" >>= \case
+    True -> read "foo.txt" >>= \s ->
         write "foo.txt" (s <> s)
     False -> pure ()
 ```
@@ -530,7 +537,7 @@ ordinary values.
 ```Haskell
 data FileIO a
 pure :: a -> FileIO a
-bind :: FileIO a -> (a -> FileIO b) -> FileIO b
+(>>=) :: FileIO a -> (a -> FileIO b) -> FileIO b
 exists :: FileName -> FileIO Bool
 read :: FileName -> FileIO FileContents
 write :: FileName -> FileContents -> FileIO ()
@@ -543,14 +550,14 @@ We've now seen three different concrete effects, all of the following form:
 ```Haskell
 data M a
 pure :: a -> M a
-bind :: M a -> (a -> M b) -> M b
+(>>=) :: M a -> (a -> M b) -> M b
 -- (Plus additional operations specific to the concrete effect.)
 ```
 Let's abstract out this common structure into a type class:
 ```Haskell
 class Monad m where
     pure :: a -> m a
-    bind :: m a -> (a -> m b) -> m b
+    (>>=) :: m a -> (a -> m b) -> m b
 ```
 > **Haskell novices**: A *type class* is a collection of methods that types can
 > implement, similar to traits in Rust or inferfaces in Java. Type classes have
@@ -561,38 +568,38 @@ class Monad m where
 > to types (as opposed to being a type outright).
 >
 > Despite the explicit signatures in the type class declaration of `Monad`,
-> `pure` and `bind` have the following types:
+> `pure` and `(>>=)` have the following types:
 > ```Haskell
 > pure :: Monad m => a -> m a
-> bind :: Monad m => m a -> (a -> m b) -> m b
+> (>>=) :: Monad m => m a -> (a -> m b) -> m b
 > ```
 > The "`Monads m => ...`" part of the signatures is a *(type class) constraint*.
 > In general, a constraint `C a` demands that `a` implements the `C` type class,
 > licensing access to the methods of `C` within the scope of the constraint.
 
 We implement `Monad` for `Fallible e`, `State s`, and `FileIO` by copying the
-definition of `pure` and `bind` from the previous section:
+definition of `pure` and `(>>=)` from the previous section:
 ```Haskell
 instance Monad (Fallible e) where
     pure = ...
-    bind = ...
+    (>>=) = ...
 
 instance Monad (State s) where
     pure = ...
-    bind = ...
+    (>>=) = ...
 
 instance Monad FileIO where
     pure = ...
-    bind = ...
+    (>>=) = ...
 ```
 
 ## Laws
 
 Although Haskell can't enforce it, all monads should satisfy a few laws:
 
-- **Left identity**: ``pure a `bind` k = k a``
-- **Right identity**: ``m `bind` pure = m``
-- **Associativity**: ``m `bind` (\x -> k x `bind` l) = (m `bind` k) `bind` l``
+- **Left identity**: `pure a >>= k = k a`
+- **Right identity**: `m >>= pure = m`
+- **Associativity**: `m >>= (\x -> k x >>= l) = (m >>= k) >>= l`
 
 > **Haskell novices**: Wrapping a function name in backticks turns it into an
 > infix operator. E.g., ``x `f` y`` means `f x y`. Going forward, we'll use
@@ -722,7 +729,7 @@ class Applicative f => Monad' f where
 - **Right identity**: ``pure . join = id``
 - **Associativity**: ``join . join = join . map join``
 
-{ TODO: abstract exercises: define `ap` form `pure` and `bind`, proving that
+{ TODO: abstract exercises: define `ap` form `pure` and `(>>=)`, proving that
 all monads are applicative functors }
 
 { TODO: concrete exercises: ??? }
@@ -736,7 +743,7 @@ https://youtu.be/ADqLBc1vFwI
 
 ### Do Notation
 
-{ TODO: demonstrate how bad indentation can get after a chain of `bind`s without
+{ TODO: demonstrate how bad indentation can get after a chain of `(>>=)`s without
 do notation }
 
 ## Traversable Functors
