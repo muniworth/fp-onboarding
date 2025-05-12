@@ -1,0 +1,17 @@
+name: example
+
+ghc-options:
+  - -Wall
+  - -Wno-name-shadowing
+
+default-extensions:
+  - BlockArguments
+  - LambdaCase
+
+dependencies:
+  - base
+
+executables:
+  example:
+    source-dirs: .
+    main: Main.hs

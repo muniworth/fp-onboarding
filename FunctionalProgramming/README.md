@@ -539,7 +539,105 @@ delete :: FileName -> FileIO ()
 
 # Monads: An Abstraction for Effects
 
-{ TODO }
+We've now seen three different concrete effects, all of the following form:
+```Haskell
+data M a
+pure :: a -> M a
+bind :: M a -> (a -> M b) -> M b
+-- (Plus additional operations specific to the concrete effect.)
+```
+Let's abstract out this common structure into a type class:
+```Haskell
+class Monad m where
+    pure :: a -> m a
+    bind :: m a -> (a -> m b) -> m b
+```
+> **Haskell novices**: A *type class* is a collection of methods that types can
+> implement, similar to traits in Rust or inferfaces in Java. Type classes have
+> nothing to do with classes in the object-oriented sense.
+>
+> In the case of `Monad`, we label the type implementing the class `m`, which
+> has kind `Type -> Type`, which means `m` is a type-level function from types
+> to types (as opposed to being a type outright).
+>
+> Despite the explicit signatures in the type class declaration of `Monad`,
+> `pure` and `bind` have the following types:
+> ```Haskell
+> pure :: Monad m => a -> m a
+> bind :: Monad m => m a -> (a -> m b) -> m b
+> ```
+> The "`Monads m => ...`" part of the signatures is a *(type class) constraint*.
+> In general, a constraint `C a` demands that `a` implements the `C` type class,
+> licensing access to the methods of `C` within the scope of the constraint.
+
+We implement `Monad` for `Fallible e`, `State s`, and `FileIO` by copying the
+definition of `pure` and `bind` from the previous section:
+```Haskell
+instance Monad (Fallible e) where
+    pure = ...
+    bind = ...
+
+instance Monad (State s) where
+    pure = ...
+    bind = ...
+
+instance Monad FileIO where
+    pure = ...
+    bind = ...
+```
+
+## Laws
+
+Although Haskell can't enforce it, all monads should satisfy a few laws:
+
+- **Left identity**: ``pure a `bind` k = k a``
+- **Right identity**: ``m `bind` pure = m``
+- **Associativity**: ``m `bind` (\x -> k x `bind` l) = (m `bind` k) `bind` l``
+
+> **Haskell novices**: Wrapping a function name in backticks turns it into an
+> infix operator. E.g., ``x `f` y`` means `f x y`. Going forward, we'll use
+> infix notation when it aids clarity.
+
+Don't focus too much on the details. Essentially, the two identity laws say that
+`pure` really creates pure computations, in the sense that it doesn't add any
+effects when sequenced with any other computation, and the associativity law
+says that sequencing of effects is associative.
+
+### Exercise ? (Optional): Lawfulness of `Fallible e`, `State s`, and `FileIO`
+
+Prove that the monad instances for `Fallible e`, `State s`, and `FileIO`
+satisfy the monads laws.
+
+## Abstract Monads
+
+By abstracting out the concept of a monad, we gain the ability to create
+computations that work for *all* monads. In other word, we can write
+effect-polymorphic code.
+
+### Exercise ?: Kleisli Composition
+
+Recall that left-to-right function composition has type
+```Haskell
+(a -> b) -> (b -> c) -> (a -> c)
+```
+> **Haskell novices**: The `Control.Arrow` module provides this function
+> composition operation as an infix operator `(>>>)`.
+
+Write a version of function composition that augments each function involved
+with effects from some monad:
+```Haskell
+kleisli :: Monad m => (a -> m b) -> (b -> m c) -> (a -> m c)
+```
+
+### Do Notation
+
+{}
+
+### Example: List: Nondeterministic Computation
+
+### Example: Reader: Computation in a Read-Only Context
+
+# Applicative Functors: A Weaker Abstraction for Effects
 
 # Abstractions for Effects
 
@@ -599,7 +697,7 @@ class Functor f => Applicative' f where
 
 { TODO: examples: accumulating errors; context-free parsing? }
 
-{ TODO: abstract exercises: define `fmap` from `pure` and `ap`, proving that
+{ TODO: abstract exercises: define `map` from `pure` and `ap`, proving that
 all applicatives are functors }
 
 { TODO: concrete examples: put examples from McBride and Paterson in a practical
@@ -614,14 +712,6 @@ with a twist (or with an "idiom", as McBride and Paterson say) }
 
 ## Monads
 
-```Haskell
-class Applicative f => Monad f where
-    bind :: f a -> (a -> f b) -> f b
-```
-- **Left identity**: ``pure a `bind` k = k a``
-- **Right identity**: ``m `bind` pure = m``
-- **Associativity**: ``m `bind` (\x -> k x `bind` l) = (m `bind` k) `bind` l``
-
 ### Exercise
 
 ```Haskell
@@ -630,9 +720,7 @@ class Applicative f => Monad' f where
 ```
 - **Left identity**: ``join . pure = id``
 - **Right identity**: ``pure . join = id``
-- **Associativity**: ``join . join = join . fmap join``
-
-{ TODO: examples: short-circuiting errors }
+- **Associativity**: ``join . join = join . map join``
 
 { TODO: abstract exercises: define `ap` form `pure` and `bind`, proving that
 all monads are applicative functors }
@@ -640,7 +728,6 @@ all monads are applicative functors }
 { TODO: concrete exercises: ??? }
 
 [Wadler](https://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf)
-
 
 ```
 "Hitler reacts to functional programming"

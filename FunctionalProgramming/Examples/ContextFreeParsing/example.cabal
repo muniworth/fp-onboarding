@@ -1,0 +1,23 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.37.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           example
+version:        0.0.0
+build-type:     Simple
+
+executable example
+  main-is: Main.hs
+  other-modules:
+      Paths_example
+  hs-source-dirs:
+      ./
+  default-extensions:
+      BlockArguments
+      LambdaCase
+  ghc-options: -Wall -Wno-name-shadowing
+  build-depends:
+      base
+  default-language: Haskell2010
