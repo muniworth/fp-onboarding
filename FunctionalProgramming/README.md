@@ -131,12 +131,20 @@ type `a`, or it fails, returning an error of type `e`.
 Immediately from the definition of `Fallible` we get two essential operations
 of failure effects:
 ```Haskell
-pure :: a -> Fallible e a
-pure = Success
+pure :: a -> Fallible e a -- (1)
+pure = Success -- (2)
 
 fail :: e -> Fallible e a
 fail = Failure
 ```
+> **Haskell novices**: Line (1) declares the type of `pure`, which implicitly
+> quantifies over each variable within that begins with a lower case letter
+> (`a` and `e` in this case), so we could equivalently write
+> ```Haskell
+> pure :: forall a e. a -> Fallible e a
+> ```
+> Line (2) defines `pure`.
+
 (Of course, we could just as well directly use `Success` and `Failure` instead
 of `pure` and `fail`.) We choose the name "`pure`", because it lifts values into
 the "pure fragment" of `Fallible e`, i.e., the part of `Fallible e` that doesn't
@@ -148,25 +156,19 @@ is empty:
 ```Haskell
 data UnconsError = UnconsError
 
-uncons :: [a] -> Fallible UnconsError (a, [a]) -- (1)
-uncons = \case -- (2)
+uncons :: [a] -> Fallible UnconsError (a, [a])
+uncons = \case
     x:xs -> pure (x, xs)
     [] -> fail UnconsError
 ```
-> **Haskell novices**: Line (1) declares the type of `uncons`, which implicitly
-> quantifies over each variable within that begins with a lower case letter
-> (just `a` in this case), so we could equivalently write
-> ```Haskell
-> uncons :: forall a. [a] -> Fallible UnconsError (a, [a])
-> ```
-> Line (2) defines `uncons` by pattern-matching on a list, a built-in type
-> approximately defined as
+> **Haskell novices**: The definition of `uncons` pattern-matches on a list, a
+> built-in type approximately defined as
 > ```Haskell
 > data List a = Nil | Cons a (List a)
 > ```
 > except we write `[a]` for `List a`, `[]` for `Nil`, and `x:xs` for
-> `Cons x xs`. The "`\case `<*cases*>" notation is syntactic sugar for
-> "`\x -> case x of `<*cases*>", where `\p -> e` is a lambda (i.e., function
+> `Cons x xs`. The "`\case ⟨cases⟩`" notation is syntactic sugar for
+> "`\x -> case x of ⟨cases⟩`", where `\p -> e` is a lambda (i.e., function
 > expression) with pattern `p` and body `e`.
 
 We can repeatedly apply `uncons` to pull, say, four elements off the start of a
@@ -262,9 +264,9 @@ runState :: State s a -> s -> (a, s)
 runState (State f) = f
 ```
 
-For example, let's write a 64-bit pseudorandom number generator:
+As an example, let's write a pseudorandom number generator:
 ```Haskell
--- Generate a stream x[i] of psuedorandom numbers of form
+-- Generate a stream x of 64-bit psuedorandom numbers of form
 --     x[i+1] = (a * x[i] + c) mod m
 -- for parameters a, c, and m, a so-called linear congruential generator. We
 -- take parameters from Knuth. The mod operation is implicit, because m = 2^64.
@@ -282,7 +284,7 @@ rand4 = State \s0 -> case runState rand s0 of
             (x2, s3) -> case runState rand s3 of
                 (x3, s4) -> ((x0, x1, x2, x3), s4)
 ```
-Yikes! Often, we want implicit threading of state between state actions, but
+Yikes! Usually we want the state to implicitly thread between state actions, but
 here we suffer manual plumbing of the state value. Following good programming
 practice of abstracting out duplicate code, let's write a function `bind` that
 automatically threads state:
@@ -348,7 +350,7 @@ transition nextChar = bind get \currState ->
         (Seen'xy', _) -> set Seen''
         (Seen'xyz', _) -> set Seen'xyz'
 ```
-Once we've scanned the entire input, we get the state to see if we've seen
+Once we've scanned the entire input, we get the state to check if we've seen
 "xyz":
 ```Haskell
 haveSeen'xyz' :: State Q Bool
@@ -377,9 +379,14 @@ contains'xyz' cs = fst (runState (statefulContains'xyz' cs) Seen'')
 > Here we use `fst` to get the output from a state computation, ignoring the
 > final state.
 
-### Exercise ?: `map` and `andThen`
+### Exercise ?: `map`
 
-{ TODO: Exercise to clean up `haveSeen'xyz'` and `statefulContains'xyz'`? }
+In the implementation of `haveSeen'xyz'`, the second computation of the `bind`
+is always pure. Write a function
+```Haskell
+map :: (a -> b) -> State s a -> State s b
+```
+and use it to simplify the implementation of `haveSeen'xyz'`.
 
 ### Exercise ?: An Alternative Representation of State Effects
 
@@ -399,15 +406,14 @@ data State' s a
    set' :: s -> State' s ()
    ```
 
-2. (Difficult!) Show that `State` and `State'` are equivalent by implementing
-   functions that interpret `State s` effects in terms of `State' s` effects and
-   vice versa:
+2. Show that `State` and `State'` are equivalent by implementing functions that
+   interpret `State s` effects in terms of `State' s` effects and vice versa:
    ```Haskell
    interpretA :: State s a -> State' s a
    interpretB :: State' s a -> State s a
    ```
-   **Hint**: What properties should `interpretA` and `interpretB` have? How
-   should `get` and `get'` relate? What about `set` and `set'`?
+   **Hint**: What properties should `interpretA` and `interpretB` have? In
+   particular, how should `get` and `get'` relate? What about `set` and `set'`?
 
 ### Summary
 
@@ -441,14 +447,17 @@ Informally, we interpret a `FileIO a` computation as either
 - performing no file I/O effects;
 - opening a file by name, creating a file handle, and passing the handle to a
   continuation;
-- reading the file with a given handle, passing the contents to a continuation;
-- writing a string to the file with a given handle, then proceeding with a
+- reading the file with a given handle, and passing the contents to a
+  continuation;
+- writing a string to the file with a given handle, and then proceeding with a
   continuation.
 > **Haskell novices**: The Haskell community says "continuation" to mean "the
-> thing to do next", usually denoted with a `k`.
+> thing to do next", usually denoted with a `k`. In the case of `FileIO`, the
+> "thing to do next" is always essentially another `FileIO` computation.
 
-Like with `Fallible e` and `State s`, `FileIO` has a pure fragment containing
-computations that don't really perform file I/O, and we enter it with `pure`:
+From the definition of `FileIO`, we can immediately derive a few core operations
+of file I/O effects (including `pure`, an analogue to the `pure` operation for
+`Fallible e` and `State s` effects):
 ```Haskell
 pure :: a -> FileIO a
 pure = Pure
@@ -460,19 +469,46 @@ read :: FileHandle -> FileIO FileContents
 read h = Read h pure
 
 write :: FileHandle -> FileContents -> FileIO ()
-read h s = Write h s (pure ())
+write h s = Write h s (pure ())
 ```
 
-For example, here's a computation that opens "foo.txt" and duplicates its
-contents (`<>` is string concatenation):
+For example, here's a computation that opens "`foo.txt`" and duplicates its
+contents:
 ```Haskell
 example :: FileIO ()
-example = Open "foo.txt" (\h -> Read h (\s -> Write h (s <> s) (Pure ())))
+example =
+    Open "foo.txt" \h ->
+        Read h \s ->
+            Write h (s <> s) (Pure ())
+```
+> **Haskell novices**: `<>` is string concatenation.
+
+```Haskell
+example =
+    case open "foo.txt" of
+        Pure h ->
+        Open x k -> Open x \h -> k h
 ```
 
 ```Haskell
-type FileSystem = Map FileName FileContents
-type FileHandles = Map FileHandle FileName
+bind :: FileIO a -> (a -> FileIO b) -> FileIO b
+bind fa fb = case fa of
+    Pure a -> fb a
+    Open x k -> Open x \h -> bind (k h) fb
+    Read h k -> Read h \s -> bind (k s) fb
+    Write h s k -> Write h s (bind k fb)
+```
+
+```Haskell
+example =
+    bind (open "foo.txt") \h ->
+        bind (read h) \s ->
+            write h (s <> s)
+```
+
+```Haskell
+type FileSystem = FileName -> FileContents
+type FileHandles = FileHandle -> FileName
 data FileError = FileDoesNotExist | InvalidFileHandle
 
 interpret :: FileIO a -> State FileSystem (Fallible FileError a)
