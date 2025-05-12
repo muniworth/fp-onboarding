@@ -55,8 +55,7 @@ the following:
 - **State**: The environment records the current value of the state, and
   programs interact with the environment by getting and setting the state.
 - **File I/O**: The environment has access to a file system, and programs
-  interact with their environment by asking it to open/close, read from, and
-  write to files.
+  interact with their environment by asking it to manipulate files.
 
 In other words, an effect is any aspect of a computation whose meaning is
 (partially) determined from *without*, whereas the principle of compositionality
@@ -393,7 +392,7 @@ and use it to simplify the implementation of `haveSeen'xyz'`.
 Suppose we instead define the state effect as follows:
 ```Haskell
 data State' s a
-  = Pure a -- No/trivial effects
+  = Pure a
   | Get (s -> State' s a)
   | Set s (State' s a)
 ```
@@ -432,131 +431,115 @@ particular because there's no standard precise definition of file I/O. However,
 for sake of example, let's encode basic file I/O effects as follows:
 ```Haskell
 type FileName = String
-type FileHandle = Int
 type FileContents = String
 
 data FileIO a
-  = Pure a -- No/trivial effects
-  | Open FileName (FileHandle -> FileIO a) -- Like "with open(..., "r+") ..." in Python
-  | Read FileHandle (FileContents -> FileIO a) -- Read entire file
-  | Write FileHandle FileContents (FileIO a) -- Overwrite entire file
+  = Pure a
+  | Exists FileName (Bool -> FileIO a)
+  | Read FileName (FileContents -> FileIO a)
+  | Write FileName FileContents (FileIO a)
+  | Delete FileName (FileIO a)
 ```
 > **Haskell novices**: `type` declarations create *type aliases*.
 
 Informally, we interpret a `FileIO a` computation as either
 - performing no file I/O effects;
-- opening a file by name, creating a file handle, and passing the handle to a
-  continuation;
-- reading the file with a given handle, and passing the contents to a
-  continuation;
-- writing a string to the file with a given handle, and then proceeding with a
-  continuation.
+- checking if a file exists and passing the boolean result to a continuation;
+- reading an existing file and passing its entire contents to a continuation;
+- writing a string to a file (overwriting its contents if the file already
+  exists) and proceeding with a continuation;
+- deleting a file and proceeding with a continuation.
 > **Haskell novices**: The Haskell community says "continuation" to mean "the
 > thing to do next", usually denoted with a `k`. In the case of `FileIO`, the
 > "thing to do next" is always essentially another `FileIO` computation.
 
-From the definition of `FileIO`, we can immediately derive a few core operations
-of file I/O effects (including `pure`, an analogue to the `pure` operation for
+From the definition of `FileIO`, we immediately derive a few core operations of
+file I/O effects (including `pure`, an analogue to the `pure` operation for
 `Fallible e` and `State s` effects):
 ```Haskell
 pure :: a -> FileIO a
 pure = Pure
 
-open :: FileName -> FileIO FileHandle
-open x = Open x pure
+exists :: FileName -> FileIO Bool
+exists x = Exists x pure
 
-read :: FileHandle -> FileIO FileContents
-read h = Read h pure
+read :: FileName -> FileIO FileContents
+read x = Read x pure
 
-write :: FileHandle -> FileContents -> FileIO ()
-write h s = Write h s (pure ())
+write :: FileName -> FileContents -> FileIO ()
+write x s = Write x s (pure ())
+
+delete :: FileName -> FileIO ()
+delete x = Delete x (pure ())
 ```
-
-For example, here's a computation that opens "`foo.txt`" and duplicates its
-contents:
+The latter four of these functions behave exactly like their constructor
+counterpart, except without the ability to specify a continuation, so we lose
+the ability to sequence file I/O computations. To see the problem here, consider
+the following computation, which duplicates the contents of "`foo.txt`" if it
+exists:
 ```Haskell
-example :: FileIO ()
-example =
-    Open "foo.txt" \h ->
-        Read h \s ->
-            Write h (s <> s) (Pure ())
+duplicateContents :: FileIO ()
+duplicateContents = Exists "foo.txt" \case
+    True -> Read "foo.txt" \s ->
+        Write "foo.txt" (s <> s) (pure ())
+    False -> pure ()
 ```
 > **Haskell novices**: `<>` is string concatenation.
 
-```Haskell
-example =
-    case open "foo.txt" of
-        Pure h ->
-        Open x k -> Open x \h -> k h
-```
-
+Now, try to write `duplicateContents` using `exists`, `read`, and `write` in
+place of `Exists`, `Read`, and `Write`. You'll find we require an analogue of
+`Fallible e` and `State s`'s `bind`:
 ```Haskell
 bind :: FileIO a -> (a -> FileIO b) -> FileIO b
 bind fa fb = case fa of
     Pure a -> fb a
-    Open x k -> Open x \h -> bind (k h) fb
-    Read h k -> Read h \s -> bind (k s) fb
-    Write h s k -> Write h s (bind k fb)
+    Exists x k -> Exists x \e -> bind (k e) fb
+    Read x k -> Read x \s -> bind (k s) fb
+    Write x s k -> Write x s (bind k fb)
+    Delete x k -> Delete x (bind k fb)
 ```
+Using `bind`, we can rewrite `duplicateContents` as follows:
+```Haskell
+duplicateContents = bind (exists "foo.txt") \case
+    True -> bind (read "foo.txt") \s ->
+        write "foo.txt" (s <> s)
+    False -> pure ()
+```
+
+### Exercise ?: Simulating `FileIO` Effects
+
+Suppose we're creating an application that performs `FileIO` effects. To test
+the application, we want a stable/consistent testing environment. In particular,
+we want to guarantee that `FileIO` effects behave deterministically, regardless
+of the state of any external file system.
+
+To this end, design types `FileError` and `FileSystem`, and write a function
+`simulate` that interprets `FileIO` effects in terms of the `Fallible FileError`
+and `State FileSystem` effects:
+```Haskell
+data FileError
+data FileSystem
+simulate :: FileIO a -> State FileSystem (Fallible FileError a)
+```
+
+**Remark**: This exercise demonstrates the strength of realizing effects as
+ordinary values.
+
+### Summary
 
 ```Haskell
-example =
-    bind (open "foo.txt") \h ->
-        bind (read h) \s ->
-            write h (s <> s)
+data FileIO a
+pure :: a -> FileIO a
+bind :: FileIO a -> (a -> FileIO b) -> FileIO b
+exists :: FileName -> FileIO Bool
+read :: FileName -> FileIO FileContents
+write :: FileName -> FileContents -> FileIO ()
+delete :: FileName -> FileIO ()
 ```
 
-```Haskell
-type FileSystem = FileName -> FileContents
-type FileHandles = FileHandle -> FileName
-data FileError = FileDoesNotExist | InvalidFileHandle
+# Monads: An Abstraction for Effects
 
-interpret :: FileIO a -> State FileSystem (Fallible FileError a)
-```
-
-# Performing Effects
-
-{TODO}
-
-# Performing `Fallible e` Effects
-
-We previously claimed that despite encoding effects as pure data, we retain
-some means of performing those effects. In the case of `Fallible e` effects, we
-get to choose what "perform"/"run" should mean --- a decided strength of
-realizing effects as ordinary values. For example, we could run `Fallible e`
-effects by transforming the output value and failure detail into a common type:
-```Haskell
-runFallible :: (a -> b) -> (e -> b) -> Fallible e a -> b -- (1)
-runFallible handleSuccess handleFailure = \case -- (2)
-    Success a -> handleSuccess a
-    Failure e -> handleFailure e
-```
-> **Haskell novices**: Line (1) declares the type of `runFallible`, which
-> implicitly quantifies over each variable within that begins with a lower case
-> letter (`a`, `b`, and `e` in this case), so we could equivalently write
-> ```Haskell
-> runFallible :: forall a b e. (a -> b) -> (e -> b) -> Fallible e a -> b
-> ```
-> Line (2) implements `runFallible` by accepting `handleSuccess` as an argument,
-> accepting `handleFailure` as an argument, and then pattern-matching on a
-> third argument. The "`\case `<*cases*>" notation is syntactic sugar for
-> "`\x -> case x of `<*cases*>", where `\p -> e` is a lambda (i.e.,
-> function expression) with pattern `p` and body `e`.
-
-Alternatively, we could ignore all good sense and handle failures with Haskell's
-exception mechanism:
-```Haskell
--- Don't do this!
-runFallibleScary :: (Exception e) => Fallible e a -> a
-runFallibleScary = \case
-    Success a -> a
-    Failure e -> throw e
-```
-> **Haskell novices**: "`(Exception e) => ...`" is a *type class constraint*.
-> Type classes are collections of methods that types can implement, similar to
-> traits in Rust or interfaces in Java. A type class constraint `C a` demands
-> that `a` implements the `C` type class, licensing access to the methods of `C`
-> within the scope of the constraint. We'll see much more of type classes later.
+{ TODO }
 
 # Abstractions for Effects
 
