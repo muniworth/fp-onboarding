@@ -621,12 +621,9 @@ instance Monad FileIO where
 
 Although Haskell can't enforce it, all monads should satisfy a few laws:
 
-- **Left identity**: `pure a >>= k   =   k a`
-- **Right identity**: `m >>= pure   =   m`
-- **Associativity**: `m >>= (\x -> k x >>= l)   =   (m >>= k) >>= l`
-
-> **Haskell novices**: Wrapping a function name in backticks turns it into an
-> infix operator. E.g., ``x `f` y`` means `f x y`.
+- **Left identity**: `pure a >>= k  =  k a`
+- **Right identity**: `m >>= pure  =  m`
+- **Associativity**: `m >>= (\x -> k x >>= l)  =  (m >>= k) >>= l`
 
 Don't focus too much on the details. Essentially, the two identity laws say that
 `pure` really creates pure computations, in the sense that computations created
@@ -635,14 +632,14 @@ and the associativity law says that sequencing of effects is associative.
 
 ### Exercise ? (Optional): Lawfulness of `Fallible e`, `State s`, and `FileIO`
 
-Prove that the monad instances for `Fallible e`, `State s`, and `FileIO`
+Prove that the `Monad` instances for `Fallible e`, `State s`, and `FileIO`
 satisfy the monads laws.
 
-## Abstract Monads
+--------------------------------------------------------------------------------
 
 By abstracting out the concept of a monad, we gain the ability to create
-computations that work for *all* monads. In other word, we can write
-effect-polymorphic code.
+computations that work for *all* monads. The next couple exercises ask you to
+implement particularly useful such effect-polymorphic functions.
 
 ### Exercise ?: "Semicolon"
 
@@ -666,10 +663,10 @@ Recall that left-to-right function composition has type
 Create a version of function composition that augments each function involved
 with effects from some monad:
 ```Haskell
-kleisli :: Monad m => (a -> m b) -> (b -> m c) -> (a -> m c)
+(>=>) :: Monad m => (a -> m b) -> (b -> m c) -> (a -> m c)
 ```
 
-### `do` Notation
+## `do` Notation
 
 > Pure functional languages have this advantage: all flow of data is made
 > explicit. And this disadvantage: sometimes it is painfully explicit.
@@ -761,17 +758,112 @@ actions (because it is) }
 
 # Applicative Functors: A Weaker Abstraction for Effects
 
+We previously saw how the `Fallible e` monad provides short-circuiting error
+handling. That is, as soon as one error occurs, `Fallible e` aborts the rest of
+the computation and returns that error. This is not some incidental feature of
+`Fallible` that we can easily change. Recall the definition of `Fallible` and
+the type signature of its bind operation:
 ```Haskell
-class Functor f => Applicative f where
-    pure :: a -> f a
-    ap :: f (a -> b) -> f a -> f b
+data Fallible e a = Success a | Failure e
+(>>=) :: Fallible e a -> (a -> Fallible e b) -> Fallible e b
 ```
-- **Identity**: ``pure id `ap` u = u``
-- **Composition**: ``pure (.) `ap` u `ap` v `ap` w = u `ap` (v `ap` w)``
-- **Homomorphism**: ``pure f `ap` pure x = pure (f x)``
-- **Interchange**: ``u `ap` pure x = pure (\f -> f x) `ap` u``
+Imagine we sequence a failed computation with some continuation
+`k :: a -> Fallible e b` by forming the computation `Failure e >>= k`. What can
+this composite computation possibly do? To do anything useful with `k`, we need
+to feed `k` something of type `a`, but we don't have an `a`; we only have an
+`e`. Therefore, the composite computation must evaluate to `Failure e`; the
+types forbid any other behavior.
 
-{ TODO: examples: accumulating errors; context-free parsing? }
+However, what if we want to accumulate errors throughout a computation, without
+ever short-circuiting? We often want this notion of failure when validating
+some sort of user input, so we can alert the user of *all* input errors. The
+type that encodes this effect exactly matches `Fallible`:
+```Haskell
+data Validation e a = Success e | Failure e
+```
+The similarity with `Fallible` stops there, however. As argued above,
+`Validation e` has no monad instance. Instead, `Validation e` implements the
+weaker effect interface of  *applicative functors*:
+```Haskell
+class Applicative f where
+    pure :: a -> f a
+    (<*>) :: f (a -> b) -> f a -> f b
+```
+Just like monads, applicative functors have a notion of pure computation created
+with `pure`. Applicative functors also have a binary operation `(<*>)`
+(pronounced "ap") that performs function application "inside" the applicative
+functor.
+
+We can implement `Applicative` for `Validation e`, but only for types `e`
+equipped with a semigroup structure, because we need some way of combining
+errors:
+```Haskell
+instance Semigroup e => Applicative (Validation e) where
+    pure = Success
+
+    Success f <*> Success a  = Success (f a)
+    Success _ <*> Failure e  = Failure e
+    Failure e <*> Success _  = Failure e
+    Failure e <*> Failure e' = Failure (e <> e') -- <-- The main difference with Fallible e
+```
+> **Haskell novices**: `(<>) :: Semigroup a => a -> a -> a` is the binary
+> operation for semigroups.
+
+For example, suppose we want to parse a string of bits (`'0'` or `'1'`) to a
+list of integers (`0` or `1`, respectively). Of course, the string could have
+characters besides `'0'` and `'1'` in it, so let's use the `Validation [String]`
+applicative functor to collect string error messages lamenting each invalid
+character. That is, we take `[String]` as our type of errors, whose semigroup
+operation is `(++)`, list concatenation.
+
+First, let's write a function to parse a single bit:
+```Haskell
+parseBit :: Char -> Validation [String] Int
+parseBit = \case
+    '0' -> pure 0
+    '1' -> pure 1
+    c   -> Failure ["Oh no! Expected '0' or '1', but got '" ++ [c] ++ "'."]
+```
+Next, we map `parseBit` over the entire input string. We can not directly cons
+the results of `parseBit` together *outside* the applicative functor; instead we
+must "lift" `(:)` into the applicative functor (with `pure`) to cons *inside*:
+```Haskell
+parseBits :: String -> Validation [String] [Int]
+parseBits = \case
+    c:cs -> pure (:) <*> parseBit c <*> parseBits cs
+    [] -> pure []
+```
+For instance:
+```Haskell
+parseBits "0101"  =  Success [0,1,0,1]
+parseBits "0x11"  =  Failure ["Oh no! Expected '0' or '1', but got 'x'."]
+parseBits "foo0"  =  Failure [
+    "Oh no! Expected '0' or '1', but got 'f'.",
+    "Oh no! Expected '0' or '1', but got 'o'.",
+    "Oh no! Expected '0' or '1', but got 'o'."
+]
+```
+
+## Laws
+
+Like monads, applicative functors should satisfy a few laws:
+
+- **Identity**: `pure id <*> u  =  u`
+  (i.e., `id u  =  u` in the applicative functor)
+- **Composition**: `pure (.) <*> u <*> v <*> w  =  u <*> (v <*> w)`
+  (i.e., `(u . v) w  =  (.) u v w  =  u (v w)` in the applicative functor)
+- **Homomorphism**: `pure f <*> pure x  =  pure (f x)`
+  (i.e., application of pure computations is pure application)
+- **Interchange**: `u <*> pure x  =  pure (\f -> f x) <*> u`
+  (i.e., `pure` really creates pure computations, in the sense that pure
+  computations commute with any other computation)
+
+### Exercise ? (Optional): Lawfulness of `Validate e`
+
+Prove that the `Applicative` instance for `Validate e` satisfies the applicative
+functor laws.
+
+--------------------------------------------------------------------------------
 
 ### Exercise ?: Monads are Applicative Functors
 
@@ -780,8 +872,45 @@ Implement `(<*>)` using `pure` and `(>>=)`.
 **Optional**: Also, prove that the monad laws imply the applicative functor
 laws, proving that monads are applicative functors.
 
-{ TODO: concrete examples: put examples from McBride and Paterson in a practical
-context }
+**Remark**: All monads are applicative functors, but we saw the converse fails.
+> The moral is this: if you have got an `Applicative` functor, that is good; if
+> you have also got a `Monad`, that is even better! And the dual of the moral is
+> this: if you need a `Monad`, that is fine; if you need only an `Applicative`
+> functor, that is even better!
+>
+> -- Conor McBride and Ross Paterson [?]
+
+### Exercise ?: Applicative Functors Compose
+
+Define the composition of two type-level functions `f, g :: * -> *` as follows:
+```Haskell
+data Compose f g x = Compose (f (g x))
+```
+Show that the composition of two applicative functors is an applicative functor:
+```Haskell
+instance (Applicative f, Applicative g) => Applicative (Compose f g) where
+    ...
+```
+
+### Exercise ?: Success is not an Option
+
+Let's define a variant of `Validate` without `Success`. By convention, we call
+it `Const`:
+```Haskell
+data Const b a = Const b
+```
+Implement `Applicative` for `Const b` when `b` is a `Monoid`:
+```Haskell
+instance Monoid b => Applicative (Const b) where
+    ...
+```
+> **Haskell novices**: Since `Monoid` inherits from `Semigroup`, `(<>)` is the
+> binary operation for `Monoid`s. The unit for `Monoid`s is
+> `mempty :: Monoid a => a`.
+
+{ TODO: ZipList (first cover the monadic structure of lists) }
+
+{ TODO: context-free parsing }
 
 
 # Functors
@@ -832,6 +961,15 @@ class Functor f => Applicative' f where
 
 
 # `Functor`, `Applicative`, `Monad`: Function Application With a Twist
+
+```Haskell
+     (<$>) :: Functor f     =>   (a ->   b) -> f a -> f b
+     (<*>) :: Applicative f => f (a ->   b) -> f a -> f b
+flip (>>=) :: Monad f       =>   (a -> f b) -> f a -> f b
+```
+> **Haskell novices**: `flip :: (a -> b -> c) -> (b -> a -> c)` flips the
+> argument order of a curried binary function. We use it here merely to compare
+> type signatures.
 
 { TODO }
 
