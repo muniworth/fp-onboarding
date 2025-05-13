@@ -140,7 +140,7 @@ fail :: e -> Fallible e a
 fail = Failure
 ```
 > **Haskell novices**: Line (1) declares the type of `pure`, which implicitly
-> quantifies over each variable within that begins with a lower case letter
+> quantifies over each variable within that begins with a lowercase letter
 > (`a` and `e` in this case), so we could equivalently write
 > ```Haskell
 > pure :: forall a e. a -> Fallible e a
@@ -579,9 +579,13 @@ class Monad m where
 > implement, similar to traits in Rust or inferfaces in Java. Type classes have
 > nothing to do with classes in the object-oriented sense.
 >
-> In the case of `Monad`, we label the type implementing the class `m`, which
-> has kind `Type -> Type`, which means `m` is a type-level function from types
-> to types (as opposed to being a type outright).
+> Note that `Monad` describes behavior for a *type-level function* `m`, not a
+> (proper) type. In the official lingo, `m` has kind `* -> *`. ***Kinds*** are
+> the "types" of types-level entities. Most programming languages only support
+> *proper* types, like `Int` and `String`, which have kind `*` in Haskell, but
+> Haskell also supports so-called *higher-kinds*, which just means kinds that
+> contain an arrow `->`. We've seen a few concrete examples of higher-kinded
+> types already, namely `Fallible, State :: * -> * -> *` and `FileIO :: * -> *`.
 >
 > Despite the explicit signatures in the type class declaration of `Monad`,
 > `pure` and `(>>=)` have the following types:
@@ -589,8 +593,8 @@ class Monad m where
 > pure :: Monad m => a -> m a
 > (>>=) :: Monad m => m a -> (a -> m b) -> m b
 > ```
-> The "`Monads m => ...`" part of the signatures is a *(type class) constraint*.
-> In general, a constraint `C a` demands that `a` implements the `C` type class,
+> The "`Monad m => ...`" part of the signatures is a *(type class) constraint*.
+> In general, a constraint `C a` demands that `a` implements the type class `C`,
 > licensing access to the methods of `C` within the scope of the constraint.
 
 We implement `Monad` for `Fallible e`, `State s`, and `FileIO` by copying the
@@ -608,23 +612,26 @@ instance Monad FileIO where
     pure = ...
     (>>=) = ...
 ```
+> **Haskell novices**: Like with functions, instance declarations implicitly
+> quantify over all variables beginning with a lowercase letter that appear
+> in the implementing type. So, here we declare a `Monad` instance for
+> `Fallible e` *for each `e`*, and likewise for `State s`.
 
 ## Laws
 
 Although Haskell can't enforce it, all monads should satisfy a few laws:
 
-- **Left identity**: `pure a >>= k = k a`
-- **Right identity**: `m >>= pure = m`
-- **Associativity**: `m >>= (\x -> k x >>= l) = (m >>= k) >>= l`
+- **Left identity**: `pure a >>= k   =   k a`
+- **Right identity**: `m >>= pure   =   m`
+- **Associativity**: `m >>= (\x -> k x >>= l)   =   (m >>= k) >>= l`
 
 > **Haskell novices**: Wrapping a function name in backticks turns it into an
-> infix operator. E.g., ``x `f` y`` means `f x y`. Going forward, we'll use
-> infix notation when it aids clarity.
+> infix operator. E.g., ``x `f` y`` means `f x y`.
 
 Don't focus too much on the details. Essentially, the two identity laws say that
-`pure` really creates pure computations, in the sense that it doesn't add any
-effects when sequenced with any other computation, and the associativity law
-says that sequencing of effects is associative.
+`pure` really creates pure computations, in the sense that computations created
+with `pure` don't add any effects when sequenced with any other computation,
+and the associativity law says that sequencing of effects is associative.
 
 ### Exercise ? (Optional): Lawfulness of `Fallible e`, `State s`, and `FileIO`
 
@@ -641,7 +648,7 @@ effect-polymorphic code.
 
 Create a operator `(>>)` (pronounced "then") that sequences two monadic
 computations, ignoring the result of the first computation and returning the
-result of the second, analogous to the semicolon in imperative programming
+result of the second, analogous to semicolons in imperative programming
 languages:
 ```Haskell
 (>>) :: Monad m => m a -> m b -> m b
@@ -662,7 +669,7 @@ with effects from some monad:
 kleisli :: Monad m => (a -> m b) -> (b -> m c) -> (a -> m c)
 ```
 
-### Do Notation
+### `do` Notation
 
 > Pure functional languages have this advantage: all flow of data is made
 > explicit. And this disadvantage: sometimes it is painfully explicit.
@@ -680,7 +687,7 @@ m1 >>= \p1 ->
 ```
 Haskell (and, nowadays, many other functional languages following Haskell's
 lead in providing ergonomic support for monadic effects) has a feature, called
-*do notation*, to flatten such expressions to the following:
+*`do` notation*, to flatten such expressions to the following:
 ```Haskell
 do
     p1 <- m1
@@ -694,21 +701,21 @@ As an additional notational convenience, if we don't need some `pi`, we can
 write just "`mi`" instead of "`pi <- mi`".
 
 > [!NOTE]
-> By default, Haskell desugars do notation using the `(>>=)` and `(>>)` methods
-> of the `Prelude.Monad` type class. To run the following examples involving do
-> notation, you'll need to either
+> By default, Haskell desugars `do` notation using the `(>>=)` and `(>>)`
+> methods of the `Prelude.Monad` type class. To run the following examples
+> involving `do` notation, you'll need to either
 > - provide instances for `Prelude.Monad` instead of our own `Monad` class
 >   (which involves concepts we haven't covered yet), or
 > - enable GHC's
 >   [RebindableSyntax](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/rebindable_syntax.html)
->   extension to make it desugar do notation using whatever operators named
+>   extension to make GHC desugar `do` notation using whatever operators named
 >   `(>>=)` and `(>>)` happen to be in scope.
 
 ### Example: Cleaning Up `uncons4` and `rand4`
 
-Recall the following disturbing code samples from our
+Recall the following disturbing code samples from our investigation of
 [`Fallible e`](#fallible-disturbing-indentation) and
-[`State s`](#state-disturbing-indentation) examples:
+[`State s`](#state-disturbing-indentation):
 ```Haskell
 uncons4 :: [a] -> Fallible UnconsError (a, a, a, a, [a])
 uncons4 xs0 =
@@ -726,7 +733,7 @@ rand4 =
                 rand >>= \x3 ->
                     pure (x0, x1, x2, x3)
 ```
-With do notation, these functions improve significantly:
+With `do` notation, these functions improve significantly:
 ```Haskell
 uncons4 xs0 = do
     (x0, xs1) <- uncons xs0
@@ -748,7 +755,8 @@ How pleasant!
 
 ***Being in a monad is the essence of imperative programming.***
 
-{ TODO }
+{ TODO: Point out how `do` notation looks like a seequence of imperative
+actions (because it is) }
 
 
 # Applicative Functors: A Weaker Abstraction for Effects
@@ -830,6 +838,11 @@ class Functor f => Applicative' f where
 ### Exercise: `flap`
 
 { TODO }
+
+### Exercise: `flop`
+
+{ TODO: Come up with some operation `flop` involving two functors `f` and `g`
+and ask to deduce the requisite type classes on `f` and `g`. }
 
 
 # TODO
