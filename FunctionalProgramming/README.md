@@ -495,13 +495,13 @@ delete x = Delete x (pure ())
 The latter four of these functions behave exactly like their constructor
 counterpart, except without the ability to specify a continuation, so we lose
 the ability to sequence file I/O computations. To see the problem here, consider
-the following computation, which duplicates the contents of "`foo.txt`" if it
+the following computation, which duplicates the contents of a given file if it
 exists:
 ```Haskell
-duplicateContents :: FileIO ()
-duplicateContents = Exists "foo.txt" \case
-    True -> Read "foo.txt" \s ->
-        Write "foo.txt" (s <> s) (pure ())
+duplicateContents :: FileName -> FileIO ()
+duplicateContents x = Exists x \case
+    True -> Read x \s ->
+        Write x (s <> s) (pure ())
     False -> pure ()
 ```
 > **Haskell novices**: `<>` is string concatenation.
@@ -520,9 +520,9 @@ fa >>= fb = case fa of
 ```
 Using `(>>=)`, we can rewrite `duplicateContents` as follows:
 ```Haskell
-duplicateContents = exists "foo.txt" >>= \case
-    True -> read "foo.txt" >>= \s ->
-        write "foo.txt" (s <> s)
+duplicateContents = exists x >>= \case
+    True -> read x >>= \s ->
+        write x (s <> s)
     False -> pure ()
 ```
 
@@ -588,7 +588,7 @@ class Monad m where
 > types already, namely `Fallible, State :: * -> * -> *` and `FileIO :: * -> *`.
 >
 > Despite the explicit signatures in the type class declaration of `Monad`,
-> `pure` and `(>>=)` have the following types:
+> `pure` and `(>>=)` really have the following types:
 > ```Haskell
 > pure :: Monad m => a -> m a
 > (>>=) :: Monad m => m a -> (a -> m b) -> m b
@@ -639,7 +639,7 @@ satisfy the monads laws.
 
 By abstracting out the concept of a monad, we gain the ability to create
 computations that work for *all* monads. The next couple exercises ask you to
-implement particularly useful such effect-polymorphic functions.
+implement particularly useful effect-polymorphic functions.
 
 ### Exercise ?: "Semicolon"
 
@@ -761,8 +761,8 @@ actions (because it is) }
 We previously saw how the `Fallible e` monad provides short-circuiting error
 handling. That is, as soon as one error occurs, `Fallible e` aborts the rest of
 the computation and returns that error. This is not some incidental feature of
-`Fallible` that we can easily change. Recall the definition of `Fallible` and
-the type signature of its bind operation:
+`Fallible` that we can easily change. To see why, recall the definition of
+`Fallible` and the type signature of its bind operation:
 ```Haskell
 data Fallible e a = Success a | Failure e
 (>>=) :: Fallible e a -> (a -> Fallible e b) -> Fallible e b
@@ -804,14 +804,18 @@ instance Semigroup e => Applicative (Validation e) where
     Success f <*> Success a  = Success (f a)
     Success _ <*> Failure e  = Failure e
     Failure e <*> Success _  = Failure e
-    Failure e <*> Failure e' = Failure (e <> e') -- <-- The main difference with Fallible e
+    Failure e <*> Failure e' = Failure (e <> e') -- The main difference with Fallible e
 ```
-> **Haskell novices**: `(<>) :: Semigroup a => a -> a -> a` is the binary
-> operation for semigroups.
+> **Haskell novices**: `Semigroup` is the type class
+> ```Haskell
+> class Semigroup a where
+>     (<>) :: a -> a -> a
+> ```
+> where `(<>)` must be associative.
 
 For example, suppose we want to parse a string of bits (`'0'` or `'1'`) to a
-list of integers (`0` or `1`, respectively). Of course, the string could have
-characters besides `'0'` and `'1'` in it, so let's use the `Validation [String]`
+list of integers (`0` or `1`, respectively). Of course, the string could contain
+characters besides `'0'` and `'1'`, so let's use the `Validation [String]`
 applicative functor to collect string error messages lamenting each invalid
 character. That is, we take `[String]` as our type of errors, whose semigroup
 operation is `(++)`, list concatenation.
@@ -858,10 +862,10 @@ Like monads, applicative functors should satisfy a few laws:
   (i.e., `pure` really creates pure computations, in the sense that pure
   computations commute with any other computation)
 
-### Exercise ? (Optional): Lawfulness of `Validate e`
+### Exercise ? (Optional): Lawfulness of `Validation e`
 
-Prove that the `Applicative` instance for `Validate e` satisfies the applicative
-functor laws.
+Prove that the `Applicative` instance for `Validation e` satisfies the
+applicative functor laws.
 
 --------------------------------------------------------------------------------
 
@@ -872,7 +876,8 @@ Implement `(<*>)` using `pure` and `(>>=)`.
 **Optional**: Also, prove that the monad laws imply the applicative functor
 laws, proving that monads are applicative functors.
 
-**Remark**: All monads are applicative functors, but we saw the converse fails.
+**Remark**: The exercise demonstrates that all monads are applicative functors,
+but we saw the converse fails.
 > The moral is this: if you have got an `Applicative` functor, that is good; if
 > you have also got a `Monad`, that is even better! And the dual of the moral is
 > this: if you need a `Monad`, that is fine; if you need only an `Applicative`
@@ -880,21 +885,9 @@ laws, proving that monads are applicative functors.
 >
 > -- Conor McBride and Ross Paterson [?]
 
-### Exercise ?: Applicative Functors Compose
-
-Define the composition of two type-level functions `f, g :: * -> *` as follows:
-```Haskell
-data Compose f g x = Compose (f (g x))
-```
-Show that the composition of two applicative functors is an applicative functor:
-```Haskell
-instance (Applicative f, Applicative g) => Applicative (Compose f g) where
-    ...
-```
-
 ### Exercise ?: Success is not an Option
 
-Let's define a variant of `Validate` without `Success`. By convention, we call
+Let's define a variant of `Validation` without `Success`. By convention, we call
 it `Const`:
 ```Haskell
 data Const b a = Const b
@@ -904,9 +897,25 @@ Implement `Applicative` for `Const b` when `b` is a `Monoid`:
 instance Monoid b => Applicative (Const b) where
     ...
 ```
-> **Haskell novices**: Since `Monoid` inherits from `Semigroup`, `(<>)` is the
-> binary operation for `Monoid`s. The unit for `Monoid`s is
-> `mempty :: Monoid a => a`.
+> **Haskell novices**: `Monoid` is the type class
+> ```Haskell
+> class Semigroup a => Monoid a where
+>     mempty :: a
+> ```
+> where `mempty` must be a left and right unit for `(<>)`.
+
+### Exercise ?: Applicative Functors Compose
+
+Let `Compose f g` be the composition of two type-level functions
+`f, g :: * -> *`:
+```Haskell
+data Compose f g x = Compose (f (g x))
+```
+Show that the composition of two applicative functors is an applicative functor:
+```Haskell
+instance (Applicative f, Applicative g) => Applicative (Compose f g) where
+    ...
+```
 
 { TODO: ZipList (first cover the monadic structure of lists) }
 
