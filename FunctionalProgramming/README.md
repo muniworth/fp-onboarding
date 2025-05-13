@@ -1,5 +1,6 @@
 { TODO: Search for "?" and fill in numbers.  }
 
+
 # Definition of Functional Programming
 
 In 1966, Peter Landin coined the term "Functional Programming" (FP) to describe
@@ -37,6 +38,7 @@ is the very definition of complexity [?].
 
 The value of compositional reasoning can only be learned through experience, but
 we now take it for granted and explore its consequences.
+
 
 # Effects
 
@@ -97,6 +99,7 @@ Richard Feldman, "The Essence of Functional Programming", [FnConf 2022](https://
 
 Richard Feldman, "The Next Paradigm Shift in Programming", [ETE 2020](https://youtu.be/6YbK8o9rZfI)
 
+
 # Encoding Effects
 
 We encode effects as type-level functions `f` that send a type `a` of "pure
@@ -143,6 +146,13 @@ fail = Failure
 > pure :: forall a e. a -> Fallible e a
 > ```
 > Line (2) defines `pure`.
+>
+> Here and elsewhere, we declare functions that clash with standard functions
+> exported from the Haskell Prelude. To avoid "ambiguous occurrence" errors
+> when referring to such declarations, hide the Prelude versions:
+> ```Haskell
+> import Prelude hiding (pure, fail) -- Add more to this list as needed.
+> ```
 
 (Of course, we could just as well directly use `Success` and `Failure` instead
 of `pure` and `fail`.) We choose the name "`pure`", because it lifts values into
@@ -206,6 +216,7 @@ computation can depend on the output value of the first computation, such that
 the composite computation fails if either input computation fails.
 
 With the help of `(>>=)`, `uncons4` simplifies to the following:
+<a name="fallible-disturbing-indentation"></a>
 ```Haskell
 uncons4 xs0 =
     uncons xs0 >>= \(x0, xs1) ->
@@ -304,12 +315,14 @@ Intuitively, `(>>=)` sequences two stateful computations, where the second
 computation can depend on the output value of the first computation.
 
 With the help of `(>>=)`, `rand4` simplifies to the following:
+<a name="state-disturbing-indentation"></a>
 ```Haskell
-rand4 = rand >>= \x0 ->
-    rand >>= \x1 ->
-        rand >>= \x2 ->
-            rand >>= \x3 ->
-                pure (x0, x1, x2, x3)
+rand4 =
+    rand >>= \x0 ->
+        rand >>= \x1 ->
+            rand >>= \x2 ->
+                rand >>= \x3 ->
+                    pure (x0, x1, x2, x3)
 ```
 Much better, although we still must endure the excessive indentation (for now).
 
@@ -538,11 +551,14 @@ ordinary values.
 data FileIO a
 pure :: a -> FileIO a
 (>>=) :: FileIO a -> (a -> FileIO b) -> FileIO b
+type FileName = String
+type FileContents = String
 exists :: FileName -> FileIO Bool
 read :: FileName -> FileIO FileContents
 write :: FileName -> FileContents -> FileIO ()
 delete :: FileName -> FileIO ()
 ```
+
 
 # Monads: An Abstraction for Effects
 
@@ -621,6 +637,16 @@ By abstracting out the concept of a monad, we gain the ability to create
 computations that work for *all* monads. In other word, we can write
 effect-polymorphic code.
 
+### Exercise ?: "Semicolon"
+
+Create a operator `(>>)` (pronounced "then") that sequences two monadic
+computations, ignoring the result of the first computation and returning the
+result of the second, analogous to the semicolon in imperative programming
+languages:
+```Haskell
+(>>) :: Monad m => m a -> m b -> m b
+```
+
 ### Exercise ?: Kleisli Composition
 
 Recall that left-to-right function composition has type
@@ -630,7 +656,7 @@ Recall that left-to-right function composition has type
 > **Haskell novices**: The `Control.Arrow` module provides this function
 > composition operation as an infix operator `(>>>)`.
 
-Write a version of function composition that augments each function involved
+Create a version of function composition that augments each function involved
 with effects from some monad:
 ```Haskell
 kleisli :: Monad m => (a -> m b) -> (b -> m c) -> (a -> m c)
@@ -638,47 +664,94 @@ kleisli :: Monad m => (a -> m b) -> (b -> m c) -> (a -> m c)
 
 ### Do Notation
 
-{}
+> Pure functional languages have this advantage: all flow of data is made
+> explicit. And this disadvantage: sometimes it is painfully explicit.
+>
+> -- Philip Wadler [?]
 
-### Example: List: Nondeterministic Computation
+When sequencing many monadic computations with bind, we have to indent once
+per bind, leading to horrific expressions of the following form:
+```Haskell
+m1 >>= \p1 ->
+    m2 >>= \p2 ->
+        m3 >>= \p3 ->
+            ...
+                mk >>= \pk -> m
+```
+Haskell (and, nowadays, many other functional languages following Haskell's
+lead in providing ergonomic support for monadic effects) has a feature, called
+*do notation*, to flatten such expressions to the following:
+```Haskell
+do
+    p1 <- m1
+    p2 <- m2
+    p3 <- m3
+    ...
+    pk <- mk
+    m
+```
+As an additional notational convenience, if we don't need some `pi`, we can
+write just "`mi`" instead of "`pi <- mi`".
 
-### Example: Reader: Computation in a Read-Only Context
+> [!NOTE]
+> By default, Haskell desugars do notation using the `(>>=)` and `(>>)` methods
+> of the `Prelude.Monad` type class. To run the following examples involving do
+> notation, you'll need to either
+> - provide instances for `Prelude.Monad` instead of our own `Monad` class
+>   (which involves concepts we haven't covered yet), or
+> - enable GHC's
+>   [RebindableSyntax](https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/rebindable_syntax.html)
+>   extension to make it desugar do notation using whatever operators named
+>   `(>>=)` and `(>>)` happen to be in scope.
+
+### Example: Cleaning Up `uncons4` and `rand4`
+
+Recall the following disturbing code samples from our
+[`Fallible e`](#fallible-disturbing-indentation) and
+[`State s`](#state-disturbing-indentation) examples:
+```Haskell
+uncons4 :: [a] -> Fallible UnconsError (a, a, a, a, [a])
+uncons4 xs0 =
+    uncons xs0 >>= \(x0, xs1) ->
+        uncons xs1 >>= \(x1, xs2) ->
+            uncons xs2 >>= \(x2, xs3) ->
+                uncons xs3 >>= \(x3, xs4) ->
+                    pure (x0, x1, x2, x3, xs4)
+
+rand4 :: State Word64 (Word64, Word64, Word64, Word64)
+rand4 =
+    rand >>= \x0 ->
+        rand >>= \x1 ->
+            rand >>= \x2 ->
+                rand >>= \x3 ->
+                    pure (x0, x1, x2, x3)
+```
+With do notation, these functions improve significantly:
+```Haskell
+uncons4 xs0 = do
+    (x0, xs1) <- uncons xs0
+    (x1, xs2) <- uncons xs1
+    (x2, xs3) <- uncons xs2
+    (x3, xs4) <- uncons xs3
+    pure (x0, x1, x2, x3, xs4)
+
+rand4 = do
+    x0 <- rand
+    x1 <- rand
+    x2 <- rand
+    x3 <- rand
+    pure (x0, x1, x2, x3)
+```
+How pleasant!
+
+### Imperative Programming
+
+***Being in a monad is the essence of imperative programming.***
+
+{ TODO }
+
 
 # Applicative Functors: A Weaker Abstraction for Effects
-
-# Abstractions for Effects
-
-The notions of effect we're interested in all have some common structure that we
-abstract out. Abstraction here has a number of benefits:
-- We can write code that is generic over effects of a certain class, preventing
-  code duplication.
-- Dealing with concrete effects in an ad hoc manner can obscure the essential
-  properties of effectful code.
-- It is illuminating to see how different effects can be classified.
-
-The effect abstractions we cover (namely, in order of increasing power,
-`Functor`, `Applicative`, `Monad`, and `Traversable`) were pioneered in a
-practical functional programming setting by Haskell, and their utility is well
-established. Roughly speaking, each of these abstractions is based around a
-notion of *function application with a twist*, where the "twist" somehow
-captures the effect.
-
-## Functors
-
-```Haskell
-class Functor f where
-   map :: (a -> b) -> f a -> f b
-```
-- **Identity**: `map id = id`
-- **Composition**: `map (f . g) = map f . map g`
-
-{ TODO: examples: data structures, `Identity`, `Const b` }
-
-{ TODO: abstract exercises: define `flap` and other weird functions }
-
-{ TODO: concrete exercises: ??? }
-
-## Applicative Functors
 
 ```Haskell
 class Functor f => Applicative f where
@@ -690,36 +763,38 @@ class Functor f => Applicative f where
 - **Homomorphism**: ``pure f `ap` pure x = pure (f x)``
 - **Interchange**: ``u `ap` pure x = pure (\f -> f x) `ap` u``
 
-### Exercise
-
-```Haskell
-class Functor f => Applicative' f where
-    unit :: f ()
-    cross :: f a -> f b -> f (a, b)
-```
-- **Left identity**: ``map snd (unit `cross` v) = v``
-- **Right identity**: ``map fst (u `cross` unit) = u``
-- **Associativity**: ``map assoc (u `cross` (v `cross` w)) = (u `cross` v) `cross` w``
-{ TODO: Exercise: implement monoidal with applicative and vice versa }
-
 { TODO: examples: accumulating errors; context-free parsing? }
 
-{ TODO: abstract exercises: define `map` from `pure` and `ap`, proving that
-all applicatives are functors }
+### Exercise ?: Monads are Applicative Functors
+
+Implement `(<*>)` using `pure` and `(>>=)`.
+
+**Optional**: Also, prove that the monad laws imply the applicative functor
+laws, proving that monads are applicative functors.
 
 { TODO: concrete examples: put examples from McBride and Paterson in a practical
 context }
 
-[McBride and Paterson](https://www.cambridge.org/core/journals/journal-of-functional-programming/article/applicative-programming-with-effects/C80616ACD5687ABDC86D2B341E83D298)
 
-### Idiom Brackets
+# Functors
 
-{ TODO: Emphasize that applicatives really are all about function application
-with a twist (or with an "idiom", as McBride and Paterson say) }
+```Haskell
+class Functor f where
+   map :: (a -> b) -> f a -> f b
+```
+- **Identity**: `map id = id`
+- **Composition**: `map (f . g) = map f . map g`
 
-## Monads
+{ TODO: examples: data structures, `Identity`, `Const b` }
 
-### Exercise
+### Exercise ?: Applicative Functors are Functors
+
+Implement `map` using `pure` and `<*>`.
+
+**Optional**: Also, prove that the applicative functor laws imply the functor
+laws, proving that applicative functions (in particular, monads) are functors.
+
+### Exercise ?: TODO
 
 ```Haskell
 class Applicative f => Monad' f where
@@ -729,32 +804,47 @@ class Applicative f => Monad' f where
 - **Right identity**: ``pure . join = id``
 - **Associativity**: ``join . join = join . map join``
 
-{ TODO: abstract exercises: define `ap` form `pure` and `(>>=)`, proving that
-all monads are applicative functors }
+### Exercise ?: TODO
 
-{ TODO: concrete exercises: ??? }
+```Haskell
+class Functor f => Applicative' f where
+    unit :: f ()
+    cross :: f a -> f b -> f (a, b)
+```
+- **Left identity**: ``map snd (unit `cross` v) = v``
+- **Right identity**: ``map fst (u `cross` unit) = u``
+- **Associativity**: ``map assoc (u `cross` (v `cross` w)) = (u `cross` v) `cross` w``
 
-[Wadler](https://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf)
+
+# Traversable Functors
+
+{ TODO: type class, laws }
+
+{ TODO: examples: parsing }
+
+
+# `Functor`, `Applicative`, `Monad`: Function Application With a Twist
+
+{ TODO }
+
+### Exercise: `flap`
+
+{ TODO }
+
+
+# TODO
+
+Combining effects (like monad transformers, but dumbed down a bit)
+
+List: Nondeterministic Computation
+
+Reader: Computation in a Read-Only Context
 
 ```
 "Hitler reacts to functional programming"
 https://youtu.be/ADqLBc1vFwI
 ```
 
-### Do Notation
-
-{ TODO: demonstrate how bad indentation can get after a chain of `(>>=)`s without
-do notation }
-
-## Traversable Functors
-
-{ TODO: type class, laws }
-
-{ TODO: examples: parsing }
-
-# TODO
-
-Combining effects (like monad transformers, but dumbed down a bit)
 
 # References
 
@@ -767,3 +857,7 @@ Combining effects (like monad transformers, but dumbed down a bit)
 [4] Simon Peyton Jones, "Haskell is Useless", [YouTube](https://youtu.be/iSmkqocn0oQ).
 
 [5] Peter Landin, "The Next 700 Programming Languages", March 1966.
+
+[McBride and Paterson](https://www.cambridge.org/core/journals/journal-of-functional-programming/article/applicative-programming-with-effects/C80616ACD5687ABDC86D2B341E83D298)
+
+[Wadler](https://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf)
