@@ -158,11 +158,11 @@ Language implementations of reduce/fold vary significantly, and many use a singl
 | Pick           | (a → b Option) → a[] → b Option  | Choose >> HeadEmpty     |
 | Catenate       | a[][] -> a[]                     | Bind Id                 |
 | Intercalate    | a[] → a[][] → a[]                | Intersperse >> Catenate |
-| Head           | [a, ...a] → a                    |                         |
-| Last           | [a, ...a] → a                    |                         |
+| Head           | a::a[] → a                       |                         |
+| Last           | a::a[] → a                       |                         |
 | HeadEmpty      | a[] → a Option                   |                         |
 | LastEmpty      | a[] → a Option                   |                         |
-| Count          | a[] -> int                       | FoldL (+1) 0            |
+| Count          | a[] -> int                       | Foldr (K (+1)) 0        |
 | Sum            | float[] -> float                 | Reduce (+)              |
 
 </details>
