@@ -1,0 +1,19 @@
+name: exercise
+
+ghc-options:
+  - -O3
+  - -Wall
+  - -Wno-name-shadowing
+  - -Wno-unused-top-binds
+
+default-extensions:
+  - BlockArguments
+  - LambdaCase
+
+dependencies:
+  - base
+
+executables:
+  exercise:
+    source-dirs: .
+    main: Main.hs

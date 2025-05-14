@@ -90,7 +90,7 @@ later, after some examples.
 ### Further Information
 
 - Richard Feldman, "The Essence of Functional Programming", FnConf 2022.
-  [Link](https://www.youtube.com/watch?v=l0ruvPCQh9I).
+  [Link](https://youtu.be/l0ruvPCQh9I).
 
 - (Optional) Richard Feldman, "The Next Paradigm Shift in Programming", ETE 2020.
   [Link](https://youtu.be/6YbK8o9rZfI)
@@ -806,7 +806,7 @@ instance Monad [] where
     pure x = [x]
 
     [] >>= _ = []
-    x:xs >>= k = k x ++ (xs >>= k)
+    (x:xs) >>= k = k x ++ (xs >>= k)
 ```
 > **Haskell novices**: As a type, `[] :: * -> *` denotes the list type
 > constructor, not to be confused with "`[]`" as a term, which denotes the nil
@@ -848,7 +848,7 @@ As expected,
 flip3With2OrMoreHeads  =  [(Heads,Heads,Heads),(Heads,Heads,Tails),(Heads,Tails,Heads),(Tails,Heads,Heads)]
 ```
 
-### Exercise ?: Nondeterministic Flush
+### Exercise: Nondeterministic Flush
 
 Let's model ordered poker hands as follows:
 ```Haskell
@@ -860,6 +860,9 @@ data Hand = Hand Card Card Card Card Card
 Write a nondeterministic computation that outputs all flushes (i.e., `Hand`s
 with all five cards of the same suit) obtainable in a game of poker (meaning the
 cards in a hand must be distinct).
+```Haskell
+flushes :: [Hand]
+```
 
 
 # Applicative Functors: A Weaker Abstraction for Effects
