@@ -1033,6 +1033,10 @@ instance (Applicative f, Applicative g) => Applicative (Compose f g) where
 Does the `Applicative` instance of `Compose f g` ever extend to a `Monad`
 instance? If so, what is it? If not, why not?
 
+### Hitler's Take on FP
+
+"Hitler reacts to functional programming". [Link](https://youtu.be/ADqLBc1vFw).
+
 
 # References
 
@@ -1058,11 +1062,6 @@ instance? If so, what is it? If not, why not?
 # TODO
 
 ## Monads
-
-```
-"Hitler reacts to functional programming"
-https://youtu.be/ADqLBc1vFwI
-```
 
 ### Imperative Programming
 
