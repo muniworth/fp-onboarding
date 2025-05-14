@@ -1,10 +1,7 @@
-{ TODO: Search for "?" and fill in numbers.  }
-
-
 # Definition of Functional Programming
 
 In 1966, Peter Landin coined the term "Functional Programming" (FP) to describe
-the language ISWIM [?]. However, he didn't provide a definition for FP, leaving
+the language ISWIM [4]. However, he didn't provide a definition for FP, leaving
 the term open for debate. Most attempts at defining functional programming
 resort to referencing particular language features, such as closures and lack of
 mutable state, but no language feature is essential to FP. Rather, functional
@@ -34,7 +31,7 @@ program `t + u` can only be understood as a whole. The inability to reason
 compositionally is not really felt in this small example, but the
 interconnectedness of large components in large programs quickly becomes
 unmanageable. Indeed, the inapplicability of the principle of compositionality
-is the very definition of complexity [?].
+is the very definition of complexity [1].
 
 The value of compositional reasoning can only be learned through experience, but
 we now take it for granted and explore its consequences.
@@ -73,7 +70,7 @@ useless:
 > no output. Why did you run the program? The reason to run a program is to have
 > an effect.
 >
-> -- Simon Peyton Jones [?]
+> -- Simon Peyton Jones [3]
 
 The key to the compositionality/effect dilemma is to *encode* effects without
 immediately *performing* them. That is, instead of writing a program that, say,
@@ -92,12 +89,8 @@ later, after some examples.
 
 ### Further Information
 
-{ TODO: Just move these to references and summarize them here, so readers can
-decide if they want to watch them fully? }
-
-Richard Feldman, "The Essence of Functional Programming", [FnConf 2022](https://www.youtube.com/watch?v=l0ruvPCQh9I).
-
-Richard Feldman, "The Next Paradigm Shift in Programming", [ETE 2020](https://youtu.be/6YbK8o9rZfI)
+- Richard Feldman, "The Essence of Functional Programming", [FnConf 2022](https://www.youtube.com/watch?v=l0ruvPCQh9I).
+- (Optional) Richard Feldman, "The Next Paradigm Shift in Programming", [ETE 2020](https://youtu.be/6YbK8o9rZfI)
 
 
 # Encoding Effects
@@ -681,7 +674,7 @@ with effects from some monad:
 > Pure functional languages have this advantage: all flow of data is made
 > explicit. And this disadvantage: sometimes it is painfully explicit.
 >
-> -- Philip Wadler [?]
+> -- Philip Wadler [6]
 
 When sequencing many monadic computations with bind, we have to indent once
 per bind, leading to horrific expressions of the following form:
@@ -1000,7 +993,7 @@ but we saw the converse fails.
 > this: if you need a `Monad`, that is fine; if you need only an `Applicative`
 > functor, that is even better!
 >
-> -- Conor McBride and Ross Paterson [?]
+> -- Conor McBride and Ross Paterson [5]
 
 ### Exercise ?: Success is not an Option
 
@@ -1108,19 +1101,23 @@ and ask to deduce the requisite type classes on `f` and `g`. }
 
 # References
 
-[1] Richard Feldman, "The Essence of Functional Programming", [FnConf 2022](https://www.youtube.com/watch?v=l0ruvPCQh9I).
+[1] Rich Hickey, "Simple Made Easy", Strange Loop 2011.
+[Link](https://youtu.be/SxdOUGdseq4).
 
-[2] Rich Hickey, "Simple Made Easy", [Strange Loop 2011](https://youtu.be/SxdOUGdseq4).
+[2] Kris Jenkins, "Side-Effects Are The Complexity Iceberg", YOW! 2024.
+[Link](https://youtu.be/_nG09Z_tdUU).
 
-[3] Kris Jenkins, "Side-Effects Are The Complexity Iceberg", [YOW! 2024](https://www.youtube.com/watch?v=_nG09Z_tdUU).
+[3] Simon Peyton Jones, "Haskell is Useless".
+[Link](https://youtu.be/iSmkqocn0oQ).
 
-[4] Simon Peyton Jones, "Haskell is Useless", [YouTube](https://youtu.be/iSmkqocn0oQ).
+[4] Peter Landin, "The Next 700 Programming Languages", 1966.
+[Link](https://web.archive.org/web/20250514174928/https://www.cs.cmu.edu/~crary/819-f09/Landin66.pdf).
 
-[5] Peter Landin, "The Next 700 Programming Languages", March 1966.
+[5] Conor McBride and Ross Paterson, "Applicative programming with effects", 2008.
+[Link](https://web.archive.org/web/20230306110258/https://www.cambridge.org/core/services/aop-cambridge-core/content/view/C80616ACD5687ABDC86D2B341E83D298/S0956796807006326a.pdf/applicative-programming-with-effects.pdf).
 
-[McBride and Paterson](https://www.cambridge.org/core/journals/journal-of-functional-programming/article/applicative-programming-with-effects/C80616ACD5687ABDC86D2B341E83D298)
-
-[Wadler](https://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf)
+[6] Philip Wadler, "Monads for functional programming", 1995.
+[Link](https://web.archive.org/web/20250330183238/https://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf).
 
 
 # TODO
