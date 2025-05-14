@@ -972,14 +972,14 @@ Like monads, applicative functors should satisfy a few laws:
   (i.e., `pure` really creates pure computations, in the sense that pure
   computations commute with any other computation)
 
-### Exercise ? (Optional): Lawfulness of `Validation e`
+### Exercise (Optional): Lawfulness of `Validation e`
 
 Prove that the `Applicative` instance for `Validation e` satisfies the
 applicative functor laws.
 
 --------------------------------------------------------------------------------
 
-### Exercise ?: Monads are Applicative Functors
+### Exercise: Monads are Applicative Functors
 
 Implement `(<*>)` using `pure` and `(>>=)`.
 
