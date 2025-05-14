@@ -658,7 +658,7 @@ languages:
 (>>) :: Monad m => m a -> m b -> m b
 ```
 
-### Exercise ?: Kleisli Composition
+### Exercise: Kleisli Composition
 
 Recall that left-to-right function composition has type
 ```Haskell
