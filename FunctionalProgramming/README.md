@@ -751,13 +751,6 @@ rand4 = do
 ```
 How pleasant!
 
-### Imperative Programming
-
-***Being in a monad is the essence of imperative programming.***
-
-{ TODO: Point out how `do` notation looks like a seequence of imperative
-actions (because it is) }
-
 ## The Identity Monad: Pure Computation
 
 When investigating a new concept X, it's often a good idea to ask if there are
@@ -1027,77 +1020,6 @@ instance (Applicative f, Applicative g) => Applicative (Compose f g) where
     ...
 ```
 
-{ TODO: ZipList (first cover the monadic structure of lists) }
-
-{ TODO: context-free parsing }
-
-
-# Functors
-
-```Haskell
-class Functor f where
-   map :: (a -> b) -> f a -> f b
-```
-- **Identity**: `map id = id`
-- **Composition**: `map (f . g) = map f . map g`
-
-{ TODO: examples: data structures }
-
-### Exercise ?: Applicative Functors are Functors
-
-Implement `map` using `pure` and `<*>`.
-
-**Optional**: Also, prove that the applicative functor laws imply the functor
-laws, proving that applicative functions (in particular, monads) are functors.
-
-### Exercise ?: TODO
-
-```Haskell
-class Functor f => Applicative' f where
-    unit :: f ()
-    cross :: f a -> f b -> f (a, b)
-```
-- **Left identity**: ``map snd (unit `cross` v) = v``
-- **Right identity**: ``map fst (u `cross` unit) = u``
-- **Associativity**: ``map assoc (u `cross` (v `cross` w)) = (u `cross` v) `cross` w``
-
-### Exercise ?: TODO
-
-```Haskell
-class Applicative f => Monad' f where
-    join :: f (f a) -> f a
-```
-- **Left identity**: ``join . pure = id``
-- **Right identity**: ``pure . join = id``
-- **Associativity**: ``join . join = join . map join``
-
-
-# Traversable Functors
-
-{ TODO: type class, laws }
-
-{ TODO: examples: parsing }
-
-
-# `Functor`, `Applicative`, `Monad`: Function Application With a Twist
-
-```Haskell
-     (<$>) :: Functor f     =>   (a ->   b) -> f a -> f b
-     (<*>) :: Applicative f => f (a ->   b) -> f a -> f b
-flip (>>=) :: Monad f       =>   (a -> f b) -> f a -> f b
-```
-
-{ TODO }
-
-### Exercise: `flap`
-
-{ TODO }
-
-### Exercise: `flop`
-
-{ TODO: Come up with some operation `flop` involving two functors `f` and `g`
-and ask to deduce the requisite type classes on `f` and `g`. }
-
 
 # References
 
@@ -1122,11 +1044,94 @@ and ask to deduce the requisite type classes on `f` and `g`. }
 
 # TODO
 
-Combining effects (like monad transformers, but dumbed down a bit)
-
-The Reader Monad: Computation in a Read-Only Context
+## Monads
 
 ```
 "Hitler reacts to functional programming"
 https://youtu.be/ADqLBc1vFwI
 ```
+
+### Imperative Programming
+
+***Being in a monad is the essence of imperative programming.***
+
+Point out how `do` notation looks like a sequence of imperative actions
+(because it is).
+
+### The Reader Monad: Computation in a Read-Only Context
+
+### Interpreting Effects?
+
+Monad morphisms
+
+### Combining Effects?
+
+Like monad transformers, but dumbed down a bit.
+
+## Applicative Functors
+
+### Exercise/Example: ZipList
+
+### Example: Context-Free Parsing
+
+## Functors
+
+```Haskell
+class Functor f where
+   map :: (a -> b) -> f a -> f b
+```
+- **Identity**: `map id = id`
+- **Composition**: `map (f . g) = map f . map g`
+
+Data structures examples
+
+### Exercise ?: Applicative Functors are Functors
+
+Implement `map` using `pure` and `<*>`.
+
+**Optional**: Also, prove that the applicative functor laws imply the functor
+laws, proving that applicative functions (in particular, monads) are functors.
+
+### Exercise ?: A Symmetric Representation of Applicative Functors
+
+```Haskell
+class Functor f => Applicative' f where
+    unit :: f ()
+    cross :: f a -> f b -> f (a, b)
+```
+- **Left identity**: ``map snd (unit `cross` v) = v``
+- **Right identity**: ``map fst (u `cross` unit) = u``
+- **Associativity**: ``map assoc (u `cross` (v `cross` w)) = (u `cross` v) `cross` w``
+
+### Exercise ?: A Symmetric Representation of Monads
+
+```Haskell
+class Applicative f => Monad' f where
+    join :: f (f a) -> f a
+```
+- **Left identity**: ``join . pure = id``
+- **Right identity**: ``pure . join = id``
+- **Associativity**: ``join . join = join . map join``
+
+
+## Traversable Functors
+
+Type class and laws
+
+Example: parsing
+
+
+## `Functor`, `Applicative`, `Monad`: Function Application With a Twist
+
+```Haskell
+     (<$>) :: Functor f     =>   (a ->   b) -> f a -> f b
+     (<*>) :: Applicative f => f (a ->   b) -> f a -> f b
+flip (>>=) :: Monad f       =>   (a -> f b) -> f a -> f b
+```
+
+### Exercise: `flap`
+
+### Exercise: `flop`
+
+Come up with some operation `flop` involving two functors `f` and `g` and ask to
+deduce the requisite type classes on `f` and `g`.
