@@ -14,7 +14,7 @@ fail = Failure
     Failure e -> fail e
 
 catch :: Fallible e a -> (e -> Fallible f a) -> Fallible f a
-catch = error "Copy your catch implementation here."
+catch = error "Not implemented!"
 
 dual :: Fallible e a -> Fallible a e
 dual = \case
