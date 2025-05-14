@@ -648,7 +648,7 @@ compared to the regular `(>>=)`):
 The following exercises ask you to implement a couple more particularly useful
 effect-polymorphic functions.
 
-### Exercise ?: "Semicolon"
+### Exercise: "Semicolon"
 
 Create a operator `(>>)` (pronounced "then") that sequences two monadic
 computations, ignoring the result of the first computation and returning the
