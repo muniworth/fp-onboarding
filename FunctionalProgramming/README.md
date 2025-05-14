@@ -638,8 +638,18 @@ satisfy the monads laws.
 --------------------------------------------------------------------------------
 
 By abstracting out the concept of a monad, we gain the ability to create
-computations that work for *all* monads. The next couple exercises ask you to
-implement particularly useful effect-polymorphic functions.
+computations that work for *all* monads. For example, we can write a
+monad-generic flipped version of `(>>=)` (which sometimes improves readability
+compared to the regular `(>>=)`):
+```Haskell
+(=<<) :: Monad m => (a -> m b) -> m a -> m b
+(=<<) = flip (>>=)
+```
+> **Haskell novices**: `flip :: (a -> b -> c) -> (b -> a -> c)` flips the
+> argument order of a curried binary function.
+
+The following exercises ask you to implement a couple more particularly useful
+effect-polymorphic functions.
 
 ### Exercise ?: "Semicolon"
 
@@ -755,6 +765,121 @@ How pleasant!
 { TODO: Point out how `do` notation looks like a seequence of imperative
 actions (because it is) }
 
+## The Identity Monad: Pure Computation
+
+When investigating a new concept X, it's often a good idea to ask if there are
+any trivial instances of X. In the case of monads, we have the identity monad:
+```Haskell
+data Identity a = Identity a
+
+runIdentity :: Identity a -> a
+runIdentity (Identity x) = x
+
+instance Monad Identity where
+    pure = Identity
+    Identity x >>= k = k x
+```
+
+What use does the identity monad have? For one, it can help cure code of the
+disease know as "readability":
+```Haskell
+f x  =  runIdentity $ pure . f =<< pure x
+```
+More seriously, the identity monad comes into play with *monad transformers*,
+which exceed our scope.
+
+## The Reader Monad: Computation in a Read-Only Context
+
+{ TODO }
+
+## The List Monad: Nondeterministic Computation
+
+Lists (or arrays) have an interesting interpretation as computations with the
+effect of nondeterminism. We interpret a list as a single nondeterministic
+value. For example, we view `[1, 2, 3]` as a single integer equal to either
+`1`, `2`, or `3`.
+
+At any point in a list computation, we have a sequence
+of "branches" currently under exploration, which we can picture as follows:
+```
+          a          b          c     ...     x          y          z
+```
+In one "step", each branch can fork off zero or more sub-branches:
+```
+          a          b          c     ...     x          y          z
+        / | \       / \         |                       / \         |
+      a0  a1 a2   b0   b1       c0                    y0   y1       z0
+```
+
+```
+      a0      a1      a2      b0      b1      c0      y0      y1      z0
+```
+
+```Haskell
+instance Monad [] where
+    pure x = [x]
+
+    [] >>= _ = []
+    x:xs >>= k = k x ++ (xs >>= k)
+```
+
+```Haskell
+guard :: Bool -> [()]
+guard = \case
+    True -> pure ()
+    False -> []
+```
+
+```Haskell
+data Value = Ace | N2 | N3 | N4 | N5 | N6 | N7 | N8 | N9 | N10 | Jack | Queen | King deriving Eq
+data Suit = Spades | Hearts | Clubs | Diamonds deriving Eq
+data Card = Card Value Suit deriving Eq
+data Hand = Hand Card Card Card Card Card
+
+sampleValue :: [Value]
+sampleValue = [Ace, N2, N3, N4, N5, N6, N7, N8, N9, N10, Jack, Queen, King]
+
+sampleSuit :: [Suit]
+sampleSuit = [Spades, Hearts, Clubs, Diamonds]
+
+sampleCard :: [Card]
+sampleCard = do
+    value <- sampleValue
+    suit <- sampleSuit
+    pure (Card value suit)
+
+sampleHand :: [Hand]
+sampleHand = do
+    c0 <- sampleCard
+
+    c1 <- sampleCard
+    guard (c1 /= c0)
+
+    c2 <- sampleCard
+    guard (c2 /= c0 && c2 /= c1)
+
+    c3 <- sampleCard
+    guard (c3 /= c0 && c3 /= c1 && c3 /= c2)
+
+    c4 <- sampleCard
+    guard (c4 /= c0 && c4 /= c1 && c4 /= c2 && c4 /= c3)
+
+    pure (Hand c0 c1 c2 c3 c4)
+
+suitOf :: Card -> Suit
+suitOf (Card _ suit) = suit
+
+isFlush :: Hand -> Bool
+isFlush (Hand c0 c1 c2 c3 c4) = all ((suitOf c0 ==) . suitOf) [c1, c2, c3, c4]
+
+sampleFlush :: [Hand]
+sampleFlush = filter isFlush sampleHand
+```
+
+Number of ordered flushes: 617760
+
+The `do` notation vididly reflects this interpretation:
+
 
 # Applicative Functors: A Weaker Abstraction for Effects
 
@@ -782,8 +907,9 @@ type that encodes this effect exactly matches `Fallible`:
 data Validation e a = Success e | Failure e
 ```
 The similarity with `Fallible` stops there, however. As argued above,
-`Validation e` has no monad instance. Instead, `Validation e` implements the
-weaker effect interface of  *applicative functors*:
+`Validation e` has no `Monad` instance (with the intended behavior). Instead,
+`Validation e` implements the weaker effect interface of  *applicative
+functors*:
 ```Haskell
 class Applicative f where
     pure :: a -> f a
@@ -794,9 +920,8 @@ with `pure`. Applicative functors also have a binary operation `(<*>)`
 (pronounced "ap") that performs function application "inside" the applicative
 functor.
 
-We can implement `Applicative` for `Validation e`, but only for types `e`
-equipped with a semigroup structure, because we need some way of combining
-errors:
+We can implement `Applicative` for `Validation e`, but only for semigroups `e`,
+because we need some way of combining errors:
 ```Haskell
 instance Semigroup e => Applicative (Validation e) where
     pure = Success
@@ -829,8 +954,9 @@ parseBit = \case
     c   -> Failure ["Oh no! Expected '0' or '1', but got '" ++ [c] ++ "'."]
 ```
 Next, we map `parseBit` over the entire input string. We can not directly cons
-the results of `parseBit` together *outside* the applicative functor; instead we
-must "lift" `(:)` into the applicative functor (with `pure`) to cons *inside*:
+the results of each call to `parseBit` together *outside* the applicative
+functor; instead we "lift" `(:)` into the applicative functor (with `pure`) to
+cons *inside*:
 ```Haskell
 parseBits :: String -> Validation [String] [Int]
 parseBits = \case
@@ -874,7 +1000,7 @@ applicative functor laws.
 Implement `(<*>)` using `pure` and `(>>=)`.
 
 **Optional**: Also, prove that the monad laws imply the applicative functor
-laws, proving that monads are applicative functors.
+laws.
 
 **Remark**: The exercise demonstrates that all monads are applicative functors,
 but we saw the converse fails.
@@ -931,7 +1057,7 @@ class Functor f where
 - **Identity**: `map id = id`
 - **Composition**: `map (f . g) = map f . map g`
 
-{ TODO: examples: data structures, `Identity`, `Const b` }
+{ TODO: examples: data structures }
 
 ### Exercise ?: Applicative Functors are Functors
 
@@ -943,16 +1069,6 @@ laws, proving that applicative functions (in particular, monads) are functors.
 ### Exercise ?: TODO
 
 ```Haskell
-class Applicative f => Monad' f where
-    join :: f (f a) -> f a
-```
-- **Left identity**: ``join . pure = id``
-- **Right identity**: ``pure . join = id``
-- **Associativity**: ``join . join = join . map join``
-
-### Exercise ?: TODO
-
-```Haskell
 class Functor f => Applicative' f where
     unit :: f ()
     cross :: f a -> f b -> f (a, b)
@@ -960,6 +1076,16 @@ class Functor f => Applicative' f where
 - **Left identity**: ``map snd (unit `cross` v) = v``
 - **Right identity**: ``map fst (u `cross` unit) = u``
 - **Associativity**: ``map assoc (u `cross` (v `cross` w)) = (u `cross` v) `cross` w``
+
+### Exercise ?: TODO
+
+```Haskell
+class Applicative f => Monad' f where
+    join :: f (f a) -> f a
+```
+- **Left identity**: ``join . pure = id``
+- **Right identity**: ``pure . join = id``
+- **Associativity**: ``join . join = join . map join``
 
 
 # Traversable Functors
@@ -976,9 +1102,6 @@ class Functor f => Applicative' f where
      (<*>) :: Applicative f => f (a ->   b) -> f a -> f b
 flip (>>=) :: Monad f       =>   (a -> f b) -> f a -> f b
 ```
-> **Haskell novices**: `flip :: (a -> b -> c) -> (b -> a -> c)` flips the
-> argument order of a curried binary function. We use it here merely to compare
-> type signatures.
 
 { TODO }
 
@@ -995,10 +1118,6 @@ and ask to deduce the requisite type classes on `f` and `g`. }
 # TODO
 
 Combining effects (like monad transformers, but dumbed down a bit)
-
-List: Nondeterministic Computation
-
-Reader: Computation in a Read-Only Context
 
 ```
 "Hitler reacts to functional programming"
