@@ -3,6 +3,7 @@ name: exercise
 ghc-options:
   - -Wall
   - -Wno-name-shadowing
+  - -Wno-unused-top-binds
 
 default-extensions:
   - BlockArguments

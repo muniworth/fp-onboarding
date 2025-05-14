@@ -1,5 +1,8 @@
 import Prelude hiding (fail, pure, (>>=))
 
+--------------------------------------------------------------------------------
+-- Fallible
+
 data Fallible e a = Success a | Failure e deriving Show
 
 pure :: a -> Fallible e a
@@ -9,7 +12,7 @@ fail :: e -> Fallible e a
 fail = Failure
 
 (>>=) :: Fallible e a -> (a -> Fallible e b) -> Fallible e b
-(>>=) fa fb = case fa of
+fa >>= fb = case fa of
     Success a -> fb a
     Failure e -> fail e
 
@@ -22,6 +25,7 @@ dual = \case
     Failure e -> Success e
 
 --------------------------------------------------------------------------------
+-- Exercise
 
 catch' :: Fallible e a -> (e -> Fallible f a) -> Fallible f a
 catch' = error "Not implemented!"
@@ -30,6 +34,7 @@ bind' :: Fallible e a -> (a -> Fallible e b) -> Fallible e b
 bind' = error "Not implemented!"
 
 --------------------------------------------------------------------------------
+-- Tests
 
 test0, test1, test2, test3, test4, test5, test6, test7 :: Fallible String String
 test0 = catch' (pure "A") \_ -> pure "B"

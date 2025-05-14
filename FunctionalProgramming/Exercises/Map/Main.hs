@@ -1,5 +1,8 @@
 import Prelude hiding (pure, (>>=), map)
 
+--------------------------------------------------------------------------------
+-- State
+
 data State s a = State (s -> (a, s))
 
 pure :: a -> State s a
@@ -20,6 +23,7 @@ set :: s -> State s ()
 set = error "Not implemented!"
 
 --------------------------------------------------------------------------------
+-- Example
 
 data Q = Seen'' | Seen'x' | Seen'xy' | Seen'xyz'
 
@@ -46,6 +50,7 @@ contains'xyz' :: String -> Bool
 contains'xyz' cs = fst (runState (statefulContains'xyz' cs) Seen'')
 
 --------------------------------------------------------------------------------
+-- Exercise
 
 map :: (a -> b) -> State s a -> State s b
 map = error "Not implemented!"
@@ -54,6 +59,7 @@ haveSeen'xyz' :: State Q Bool
 haveSeen'xyz' = error "Not implemented!"
 
 --------------------------------------------------------------------------------
+-- Tests
 
 test0, test1, test2, test3, test4, test5 :: Bool
 test0 = contains'xyz' "xyz"

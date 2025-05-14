@@ -1,7 +1,10 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 import Data.List (intercalate)
-import Prelude hiding (pure, (>>=), map)
+import Prelude hiding (pure, (>>=))
+
+--------------------------------------------------------------------------------
+-- State
 
 data State s a = State (s -> (a, s))
 
@@ -22,12 +25,16 @@ get = error "Not implemented!"
 set :: s -> State s ()
 set = error "Not implemented!"
 
+--------------------------------------------------------------------------------
+-- State'
+
 data State' s a
     = Pure a
     | Get (s -> State' s a)
     | Set s (State' s a)
 
 --------------------------------------------------------------------------------
+-- Exercise, Part 1
 
 pure' :: a -> State' s a
 pure' = error "Not implemented!"
@@ -42,6 +49,7 @@ set' :: s -> State' s ()
 set' = error "Not implemented!"
 
 --------------------------------------------------------------------------------
+-- Exercise, Part 2
 
 interpretA :: State s a -> State' s a
 interpretA = error "Not implemented!"
@@ -50,8 +58,7 @@ interpretB :: State' s a -> State s a
 interpretB = error "Not implemented!"
 
 --------------------------------------------------------------------------------
-
--- Stuff for printing state actions
+-- Tests
 
 class Enumerable a where
     enumerate :: [a]

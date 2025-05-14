@@ -1,5 +1,8 @@
 import Prelude hiding (pure, (>>=))
 
+--------------------------------------------------------------------------------
+-- State
+
 data State s a = State (s -> (a, s))
 
 pure :: a -> State s a
@@ -14,6 +17,7 @@ sa >>= sb = State \s ->
         (a, s') -> runState (sb a) s'
 
 --------------------------------------------------------------------------------
+-- Exercise
 
 get :: State s s
 get = error "Not implemented!"
@@ -22,6 +26,7 @@ set :: s -> State s ()
 set = error "Not implemented!"
 
 --------------------------------------------------------------------------------
+-- Tests
 
 test0, test1 :: State String String
 test0 = get
