@@ -1017,18 +1017,21 @@ instance Monoid b => Applicative (Const b) where
 Does the `Applicative` instance of `Const b` ever extend to a `Monad` instance?
 If so, what is it? If not, why not?
 
-### Exercise ?: Applicative Functors Compose
+### Exercise: Applicative Functors Compose
 
 Let `Compose f g` be the composition of two type-level functions
 `f, g :: * -> *`:
 ```Haskell
-data Compose f g x = Compose (f (g x))
+data Compose f g a = Compose (f (g a))
 ```
 Show that the composition of two applicative functors is an applicative functor:
 ```Haskell
 instance (Applicative f, Applicative g) => Applicative (Compose f g) where
     ...
 ```
+
+Does the `Applicative` instance of `Compose f g` ever extend to a `Monad`
+instance? If so, what is it? If not, why not?
 
 
 # References
