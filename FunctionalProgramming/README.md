@@ -995,7 +995,7 @@ but we saw the converse fails.
 >
 > -- Conor McBride and Ross Paterson [5]
 
-### Exercise ?: Success is not an Option
+### Exercise: Success is not an Option
 
 Let's define a variant of `Validation` without `Success`. By convention, we call
 it `Const`:
@@ -1013,6 +1013,9 @@ instance Monoid b => Applicative (Const b) where
 >     mempty :: a
 > ```
 > where `mempty` must be a left and right unit for `(<>)`.
+
+Does the `Applicative` instance of `Const b` ever extend to a `Monad` instance?
+If so, what is it? If not, why not?
 
 ### Exercise ?: Applicative Functors Compose
 
