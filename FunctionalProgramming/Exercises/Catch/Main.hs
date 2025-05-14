@@ -20,16 +20,11 @@ catch = error "Not implemented!"
 
 --------------------------------------------------------------------------------
 
-test0, test1, test2, test3 :: Fallible String Int
-test0 = catch (pure 0) \_ -> pure 1
-test1 = catch (pure 0) \_ -> fail "B"
-test2 = catch (fail "A") \_ -> pure 1
+test0, test1, test2, test3 :: Fallible String String
+test0 = catch (pure "A") \_ -> pure "B"
+test1 = catch (pure "A") \_ -> fail "B"
+test2 = catch (fail "A") \_ -> pure "B"
 test3 = catch (fail "A") \_ -> fail "B"
 
 main :: IO ()
-main = do
-    print test0
-    print test1
-    print test2
-    print test3
-    return ()
+main = mapM_ print [test0, test1, test2, test3]
