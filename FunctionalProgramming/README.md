@@ -788,33 +788,29 @@ f x  =  runIdentity $ pure . f =<< pure x
 More seriously, the identity monad comes into play with *monad transformers*,
 which exceed our scope.
 
-## The Reader Monad: Computation in a Read-Only Context
-
-{ TODO }
-
 ## The List Monad: Nondeterministic Computation
 
-Lists (or arrays) have an interesting interpretation as computations with the
-effect of nondeterminism. We interpret a list as a single nondeterministic
-value. For example, we view `[1, 2, 3]` as a single integer equal to either
-`1`, `2`, or `3`.
+Lists (or arrays) have a `Monad` instance with an interesting interpretation as
+nondeterministic computations. Specifically, we interpret a list as a single
+nondeterministic value. For example, we view `[1, 2, 3]` as a single value
+equal to either `1`, `2`, or `3`. To compute with such a value, we apply bind
+(which has type `[a] -> (a -> [b]) -> [b]`) to "fork" computation by mapping
+each case (`1`, `2`, `3`) to a new nondeterministic value. We can picture it
+like this:
+```
+                    1                2                3
+                  / | \                              / \
+                 4  5  6                            7   8
+```
+In this case, `1` branches to `4`, `5`, or `6` (nondeterministically); `2`
+branches to nothing (the branch "dies"); and `3` branches to `7` or `8`
+(nondeterministically). Thus, the output value is `4`, `5`, `6`, `7`, or `8`,
+a nondeterministic value realized as the list `[4, 5, 6, 7, 8]`.
 
-At any point in a list computation, we have a sequence
-of "branches" currently under exploration, which we can picture as follows:
-```
-          a          b          c     ...     x          y          z
-```
-In one "step", each branch can fork off zero or more sub-branches:
-```
-          a          b          c     ...     x          y          z
-        / | \       / \         |                       / \         |
-      a0  a1 a2   b0   b1       c0                    y0   y1       z0
-```
-
-```
-      a0      a1      a2      b0      b1      c0      y0      y1      z0
-```
-
+That explains the behavior of `(>>=)` for the list `Monad`, but what about
+`pure`? For any monadic effect, `pure` should represent the case of trivial
+effects, so for the effect of nondeterminism, `pure` ought to produce
+*deterministic* computations, i.e., singleton lists.
 ```Haskell
 instance Monad [] where
     pure x = [x]
@@ -822,63 +818,58 @@ instance Monad [] where
     [] >>= _ = []
     x:xs >>= k = k x ++ (xs >>= k)
 ```
+> **Haskell novices**: As a type, `[] :: * -> *` denotes the list type
+> constructor, not to be confused with "`[]`" as a term, which denotes the nil
+> constructor of lists.
 
+For example, here's a nondeterministic function for flipping a coin:
 ```Haskell
-guard :: Bool -> [()]
-guard = \case
-    True -> pure ()
-    False -> []
+data CoinFlip = Heads | Tails deriving Eq
+
+flip :: [CoinFlip]
+flip = [Heads, Tails]
+```
+> **Haskell novices**: `deriving Eq` instructs Haskell to automatically
+> implement the `Eq` type class, enabling equality comparison.
+
+We can use `flip` and the monadic structure of lists to write a nondeterministic
+computation that finds all possible ways of flipping three coins and getting
+two or more heads:
+```Haskell
+-- The empty list, but with a more suggestive name.
+die :: [a]
+die = []
+
+flip3With2OrMoreHeads :: [(CoinFlip, CoinFlip, CoinFlip)]
+flip3With2OrMoreHeads = do
+    x <- flip
+    y <- flip
+    z <- flip
+    if count (== Heads) [x, y, z] >= 2 then
+        pure (x, y, z)
+    else
+        die
+```
+Notice how the `do` notation makes it look like we really are flipping three
+coins nondeterministically!
+
+As expected,
+```Haskell
+flip3With2OrMoreHeads  =  [(Heads,Heads,Heads),(Heads,Heads,Tails),(Heads,Tails,Heads),(Tails,Heads,Heads)]
 ```
 
+### Exercise ?: Nondeterministic Flush
+
+Let's model ordered poker hands as follows:
 ```Haskell
 data Value = Ace | N2 | N3 | N4 | N5 | N6 | N7 | N8 | N9 | N10 | Jack | Queen | King deriving Eq
 data Suit = Spades | Hearts | Clubs | Diamonds deriving Eq
 data Card = Card Value Suit deriving Eq
 data Hand = Hand Card Card Card Card Card
-
-sampleValue :: [Value]
-sampleValue = [Ace, N2, N3, N4, N5, N6, N7, N8, N9, N10, Jack, Queen, King]
-
-sampleSuit :: [Suit]
-sampleSuit = [Spades, Hearts, Clubs, Diamonds]
-
-sampleCard :: [Card]
-sampleCard = do
-    value <- sampleValue
-    suit <- sampleSuit
-    pure (Card value suit)
-
-sampleHand :: [Hand]
-sampleHand = do
-    c0 <- sampleCard
-
-    c1 <- sampleCard
-    guard (c1 /= c0)
-
-    c2 <- sampleCard
-    guard (c2 /= c0 && c2 /= c1)
-
-    c3 <- sampleCard
-    guard (c3 /= c0 && c3 /= c1 && c3 /= c2)
-
-    c4 <- sampleCard
-    guard (c4 /= c0 && c4 /= c1 && c4 /= c2 && c4 /= c3)
-
-    pure (Hand c0 c1 c2 c3 c4)
-
-suitOf :: Card -> Suit
-suitOf (Card _ suit) = suit
-
-isFlush :: Hand -> Bool
-isFlush (Hand c0 c1 c2 c3 c4) = all ((suitOf c0 ==) . suitOf) [c1, c2, c3, c4]
-
-sampleFlush :: [Hand]
-sampleFlush = filter isFlush sampleHand
 ```
-
-Number of ordered flushes: 617760
-
-The `do` notation vididly reflects this interpretation:
+Write a nondeterministic computation that outputs all flushes (i.e., `Hand`s
+with all five cards of the same suit) obtainable in a game of poker (meaning the
+cards in a hand must be distinct).
 
 
 # Applicative Functors: A Weaker Abstraction for Effects
@@ -1115,16 +1106,6 @@ flip (>>=) :: Monad f       =>   (a -> f b) -> f a -> f b
 and ask to deduce the requisite type classes on `f` and `g`. }
 
 
-# TODO
-
-Combining effects (like monad transformers, but dumbed down a bit)
-
-```
-"Hitler reacts to functional programming"
-https://youtu.be/ADqLBc1vFwI
-```
-
-
 # References
 
 [1] Richard Feldman, "The Essence of Functional Programming", [FnConf 2022](https://www.youtube.com/watch?v=l0ruvPCQh9I).
@@ -1140,3 +1121,15 @@ https://youtu.be/ADqLBc1vFwI
 [McBride and Paterson](https://www.cambridge.org/core/journals/journal-of-functional-programming/article/applicative-programming-with-effects/C80616ACD5687ABDC86D2B341E83D298)
 
 [Wadler](https://homepages.inf.ed.ac.uk/wadler/papers/marktoberdorf/baastad.pdf)
+
+
+# TODO
+
+Combining effects (like monad transformers, but dumbed down a bit)
+
+The Reader Monad: Computation in a Read-Only Context
+
+```
+"Hitler reacts to functional programming"
+https://youtu.be/ADqLBc1vFwI
+```
