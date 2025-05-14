@@ -89,8 +89,11 @@ later, after some examples.
 
 ### Further Information
 
-- Richard Feldman, "The Essence of Functional Programming", [FnConf 2022](https://www.youtube.com/watch?v=l0ruvPCQh9I).
-- (Optional) Richard Feldman, "The Next Paradigm Shift in Programming", [ETE 2020](https://youtu.be/6YbK8o9rZfI)
+- Richard Feldman, "The Essence of Functional Programming", FnConf 2022.
+  [Link](https://www.youtube.com/watch?v=l0ruvPCQh9I).
+
+- (Optional) Richard Feldman, "The Next Paradigm Shift in Programming", ETE 2020.
+  [Link](https://youtu.be/6YbK8o9rZfI)
 
 
 # Encoding Effects
@@ -139,7 +142,8 @@ fail = Failure
 > pure :: forall a e. a -> Fallible e a
 > ```
 > Line (2) defines `pure`.
->
+
+> [!NOTE]
 > Here and elsewhere, we declare functions that clash with standard functions
 > exported from the Haskell Prelude. To avoid "ambiguous occurrence" errors
 > when referring to such declarations, hide the Prelude versions:
@@ -220,7 +224,7 @@ uncons4 xs0 =
 ```
 Much better, although we still must endure the excessive indentation (for now).
 
-### Exercise ?: `catch`
+### Exercise: `catch`
 
 Implement the following function for catching errors:
 ```Haskell
@@ -229,7 +233,7 @@ catch :: Fallible e a -> (e -> Fallible f a) -> Fallible f a
 (In part, this exercise asks you to figure out what `catch` should do based on
 its type signature.)
 
-### Exercise ?: The Duality of Success and Failure
+### Exercise: The Duality of Success and Failure
 
 Let `dual` be the following function:
 ```Haskell
@@ -260,8 +264,8 @@ value to an output value paired with a final state value:
 data State s a = State (s -> (a, s))
 ```
 
-Like with `Fallible e`, `State s` has a pure fragment containing computations
-that don't really get or set the state, and we enter it with `pure`:
+Like `Fallible e`, `State s` has a pure fragment containing computations that
+don't really get or set the state, and we enter it with `pure`:
 ```Haskell
 pure :: a -> State s a
 pure a = State \s -> (a, s)
@@ -319,7 +323,7 @@ rand4 =
 ```
 Much better, although we still must endure the excessive indentation (for now).
 
-### Exercise ?: `get` and `set`
+### Exercise: `get` and `set`
 
 Implement the following fundamental operations of the state effect:
 ```Haskell
@@ -391,7 +395,7 @@ contains'xyz' cs = fst (runState (statefulContains'xyz' cs) Seen'')
 > Here we use `fst` to get the output from a state computation, ignoring the
 > final state.
 
-### Exercise ?: `map`
+### Exercise: `map`
 
 In the implementation of `haveSeen'xyz'`, the second computation of the `(>>=)`
 is always pure. Write a function
@@ -400,7 +404,7 @@ map :: (a -> b) -> State s a -> State s b
 ```
 and use it to simplify the implementation of `haveSeen'xyz'`.
 
-### Exercise ?: An Alternative Representation of State Effects
+### Exercise: An Alternative Representation of State Effects
 
 Suppose we instead define the state effect as follows:
 ```Haskell
@@ -462,9 +466,9 @@ Informally, we interpret a `FileIO a` computation as either
 - writing a string to a file (overwriting its contents if the file already
   exists) and proceeding with a continuation;
 - deleting a file and proceeding with a continuation.
-> **Haskell novices**: The Haskell community says "continuation" to mean "the
-> thing to do next", usually denoted with a `k`. In the case of `FileIO`, the
-> "thing to do next" is always essentially another `FileIO` computation.
+> **Haskell novices**: "Continuation" to mean "the thing to do next", usually
+> denoted with a `k`. In the case of `FileIO`, the "thing to do next" is always
+> essentially another `FileIO` computation.
 
 From the definition of `FileIO`, we immediately derive a few core operations of
 file I/O effects (including `pure`, an analogue to the `pure` operation for
@@ -519,7 +523,7 @@ duplicateContents = exists x >>= \case
     False -> pure ()
 ```
 
-### Exercise ?: Simulating `FileIO` Effects
+### Exercise: Simulating `FileIO` Effects
 
 Suppose we're creating an application that performs `FileIO` effects. To test
 the application, we want a stable/consistent testing environment. In particular,
@@ -607,7 +611,7 @@ instance Monad FileIO where
 ```
 > **Haskell novices**: Like with functions, instance declarations implicitly
 > quantify over all variables beginning with a lowercase letter that appear
-> in the implementing type. So, here we declare a `Monad` instance for
+> in the implementing type. So here we really declare a `Monad` instance for
 > `Fallible e` *for each `e`*, and likewise for `State s`.
 
 ## Laws
@@ -623,7 +627,7 @@ Don't focus too much on the details. Essentially, the two identity laws say that
 with `pure` don't add any effects when sequenced with any other computation,
 and the associativity law says that sequencing of effects is associative.
 
-### Exercise ? (Optional): Lawfulness of `Fallible e`, `State s`, and `FileIO`
+### Exercise (Optional): Lawfulness of `Fallible e`, `State s`, and `FileIO`
 
 Prove that the `Monad` instances for `Fallible e`, `State s`, and `FileIO`
 satisfy the monads laws.
