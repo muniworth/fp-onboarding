@@ -1248,6 +1248,23 @@ Like monad transformers, but dumbed down a bit.
 
 ### Example: Context-Free Parsing
 
+## Functors
+
+### Exercise: Nesting Effects
+
+```Haskell
+data Nest f a = Naked a | Layer (Nest f (f a))
+```
+
+Implement `Functor` and `Applicative` for `Nest f`. In each case, what
+assumptions do you need on `f`?
+
+```Haskell
+collapse :: Monad m => Nest m a -> m a
+```
+
+"Rank polymorphism" with `Nest [] a`
+
 ## Traversable Functors
 
 Type class and laws
