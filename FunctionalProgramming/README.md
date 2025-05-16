@@ -995,6 +995,13 @@ but we saw the converse fails.
 >
 > -- Conor McBride and Ross Paterson [5]
 
+As a consequence of this exercise, we henceforth assume `Applicative` is a
+super-class of `Monad`:
+```Haskell
+class Applicative m => Monad m where
+    ...
+```
+
 ### Exercise: Success is not an Option
 
 Let's define a variant of `Validation` without `Success`. By convention, we call
@@ -1075,6 +1082,123 @@ Implement `(<$>)` using `pure` and `<*>`.
 **Optional**: Also, prove that the applicative functor laws imply the functor
 laws, proving that applicative functors (in particular, monads) are functors.
 
+As a consequence of this exercise, we henceforth assume `Functor` is a
+super-class of `Applicative`:
+```Haskell
+class Functor f => Applicative f where
+    ...
+```
+
+--------------------------------------------------------------------------------
+
+The previous exercise demonstrates how applicative (in particular, monadic)
+effects implement `Functor`. Data structures, which we wouldn't normally
+interpret as "effects", also implement `Functor`. For example, let's define the
+type of binary trees with values on leaves:
+```Haskell
+data Tree a = Leaf a | Branch (Tree a) (Tree a)
+```
+`Tree` implements `Functor` as follows:
+```Haskell
+instance Functor Tree where
+    f <$> Leaf a = Leaf (f a)
+    f <$> Branch l r = Branch (f <$> l) (f <$> r)
+```
+Notice how in the `Leaf` case we produce a `Leaf` and in the `Branch` case
+we produce a `Branch`. In this way, `(<$>)` preserves the structure of the tree,
+only changing the values on the leaves.
+
+For instance:
+```Haskell
+(+1) <$> Branch (Leaf 0) (Branch (Leaf 1) (Leaf 2))  =  Branch (Leaf 1) (Branch (Leaf 2) (Leaf 3))
+--                            *                                           *
+--                           / \                                         / \
+--                          0   *                                       1   *
+--                             / \                                         / \
+--                            1   2                                       2   3
+```
+
+In some cases, it make sense to interpret a functor as both an effect and a data
+structure. For example, we can view the functor instance induced by the
+nondeterministic computation interpretation of lists, e.g.,
+```Haskell
+(+1) <$> (0 or 1 or 2)  =  (1 or 2 or 3)
+```
+as the familiar list mapping operation, e.g.,
+```Haskell
+(+1) <$> [0, 1, 2]  =  [1, 2, 3]
+```
+
+### Exercise: A Symmetric Representation of Applicative Functors
+
+The laws of `Applicative` have a disturbing asymmetry that stems from the
+asymmetry of `(<*>)`:
+```Haskell
+(<*>) :: Applicative f => f (a -> b) -> f a -> f b
+--                        ^^^^^^^^^^    ^^^   Not symmetrical!
+```
+We obtain a cleaner set of laws with the following presentation of applicative
+functors:
+```Haskell
+class Functor f => Applicative' f where
+    unit :: f ()
+    cross :: f a -> f b -> f (a, b)
+```
+- **Left identity**: ``snd <$> (unit `cross` v)  =  v`` (i.e., `unit` adds no
+  effects on the left)
+- **Right identity**: ``fst <$> (u `cross` unit)  =  u`` (i.e., `unit` adds no
+  effects on the right)
+- **Associativity**: ``assoc <$> (u `cross` (v `cross` w))  =  (u `cross` v) `cross` w``
+  where `assoc = \(u, (v, w)) -> ((u, v), w)` (i.e., sequencing of effects
+  is associative)
+
+Show that `Applicative` and `Applicative'` are equivalent by implementing the
+following functions:
+```Haskell
+unit' :: Applicative f => f ()
+cross' :: Applicative f => f a -> f b -> f (a, b)
+
+pure' :: Applicative' f => a -> f a
+ap' :: Applicative' f => f (a -> b) -> f a -> f b
+```
+
+### Exercise: A Symmetric Representation of Monads
+
+The laws of `Monad` have a disturbing asymmetry that steps from the asymmetry
+of `(>>=)`:
+```Haskell
+(>>=) :: Monad m => m a -> (a -> m b) -> m b
+--                  ^^^    ^^^^^^^^^^   Not symmetrical!
+```
+We obtain a cleaner set of laws with the following presentation of monads:
+```Haskell
+class Applicative f => Monad' f where
+    join :: f (f a) -> f a
+```
+- **Left identity**: `join . pure  =  id` (i.e., adding a layer of effects
+  with `pure` before a `join` does nothing)
+- **Right identity**: `pure . join  =  id` (i.e., adding a layer of effects
+  with `pure` after a `join` does nothing)
+- **Associativity**: `join . join  =  join . map join`; graphically:
+  ```Haskell
+  join . join :: m (m (m a)) -> m a
+  --             ^  ^  Join these two m's first
+  -- Informally: (m `join` m) `join` m
+
+  join . map join :: m (m (m a)) -> m a
+  --                    ^  ^  Join these two m's first
+  -- Informally: m `join` (m `join` m)
+  ```
+  (i.e., the order in which you join layers of effects does not matter)
+
+Show that `Monad` and `Monad'` are equivalent by implementing the following
+functions:
+```Haskell
+join' :: Monad m => m (m a) -> m a
+
+bind' :: Monad' m => m a -> (a -> m b) -> m b
+```
+
 
 # References
 
@@ -1124,38 +1248,11 @@ Like monad transformers, but dumbed down a bit.
 
 ### Example: Context-Free Parsing
 
-## Functors
-
-Data structures examples
-
-### Exercise ?: A Symmetric Representation of Applicative Functors
-
-```Haskell
-class Functor f => Applicative' f where
-    unit :: f ()
-    cross :: f a -> f b -> f (a, b)
-```
-- **Left identity**: ``map snd (unit `cross` v) = v``
-- **Right identity**: ``map fst (u `cross` unit) = u``
-- **Associativity**: ``map assoc (u `cross` (v `cross` w)) = (u `cross` v) `cross` w``
-
-### Exercise ?: A Symmetric Representation of Monads
-
-```Haskell
-class Applicative f => Monad' f where
-    join :: f (f a) -> f a
-```
-- **Left identity**: ``join . pure = id``
-- **Right identity**: ``pure . join = id``
-- **Associativity**: ``join . join = join . map join``
-
-
 ## Traversable Functors
 
 Type class and laws
 
 Example: parsing
-
 
 ## `Functor`, `Applicative`, `Monad`: Function Application With a Twist
 
