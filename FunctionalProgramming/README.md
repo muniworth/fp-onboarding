@@ -1172,8 +1172,8 @@ of `(>>=)`:
 ```
 We obtain a cleaner set of laws with the following presentation of monads:
 ```Haskell
-class Applicative f => Monad' f where
-    join :: f (f a) -> f a
+class Applicative m => Monad' m where
+    join :: m (m a) -> m a
 ```
 - **Left identity**: `join . pure  =  id` (i.e., adding a layer of effects
   with `pure` before a `join` does nothing)
