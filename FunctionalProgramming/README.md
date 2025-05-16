@@ -1035,7 +1035,7 @@ instance? If so, what is it? If not, why not?
 
 ### Hitler's Take on FP
 
-"Hitler reacts to functional programming". [Link](https://youtu.be/ADqLBc1vFw).
+"Hitler reacts to functional programming". [Link](https://youtu.be/ADqLBc1vFwI).
 
 
 # Functors
