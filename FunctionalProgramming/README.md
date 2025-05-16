@@ -888,7 +888,7 @@ ever short-circuiting? We often want this notion of failure when validating
 some sort of user input, so we can alert the user of *all* input errors. The
 type that encodes this effect exactly matches `Fallible`:
 ```Haskell
-data Validation e a = Success e | Failure e
+data Validation e a = Success a | Failure e
 ```
 The similarity with `Fallible` stops there, however. As argued above,
 `Validation e` has no `Monad` instance (with the intended behavior). Instead,
