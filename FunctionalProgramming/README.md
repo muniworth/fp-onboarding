@@ -466,7 +466,7 @@ Informally, we interpret a `FileIO a` computation as either
 - writing a string to a file (overwriting its contents if the file already
   exists) and proceeding with a continuation;
 - deleting a file and proceeding with a continuation.
-> **Haskell novices**: "Continuation" to mean "the thing to do next", usually
+> **Haskell novices**: "Continuation" means "the thing to do next", usually
 > denoted with a `k`. In the case of `FileIO`, the "thing to do next" is always
 > essentially another `FileIO` computation.
 
@@ -618,9 +618,9 @@ instance Monad FileIO where
 
 Although Haskell can't enforce it, all monads should satisfy a few laws:
 
-- **Left identity**: `pure a >>= k  =  k a`
-- **Right identity**: `m >>= pure  =  m`
-- **Associativity**: `m >>= (\x -> k x >>= l)  =  (m >>= k) >>= l`
+- **Left identity**: for all `a` and `k`, `pure a >>= k  =  k a`
+- **Right identity**: for all `m`, `m >>= pure  =  m`
+- **Associativity**: for all `m`, `k`, and `l`, `m >>= (\x -> k x >>= l)  =  (m >>= k) >>= l`
 
 Don't focus too much on the details. Essentially, the two identity laws say that
 `pure` really creates pure computations, in the sense that computations created
@@ -892,8 +892,8 @@ data Validation e a = Success a | Failure e
 ```
 The similarity with `Fallible` stops there, however. As argued above,
 `Validation e` has no `Monad` instance (with the intended behavior). Instead,
-`Validation e` implements the weaker effect interface of  *applicative
-functors*:
+`Validation e` implements the weaker effect interface of  ***applicative
+functors***:
 ```Haskell
 class Applicative f where
     pure :: a -> f a
@@ -962,13 +962,13 @@ parseBits "foo0"  =  Failure [
 
 Like monads, applicative functors should satisfy a few laws:
 
-- **Identity**: `pure id <*> u  =  u`
+- **Identity**: for all `u`, `pure id <*> u  =  u`
   (i.e., `id u  =  u` in the applicative functor)
-- **Composition**: `pure (.) <*> u <*> v <*> w  =  u <*> (v <*> w)`
+- **Composition**: for all `u`, `v`, and `w`, `pure (.) <*> u <*> v <*> w  =  u <*> (v <*> w)`
   (i.e., `(u . v) w  =  (.) u v w  =  u (v w)` in the applicative functor)
-- **Homomorphism**: `pure f <*> pure x  =  pure (f x)`
+- **Homomorphism**: for all `f` and `x`, `pure f <*> pure x  =  pure (f x)`
   (i.e., application of pure computations is pure application)
-- **Interchange**: `u <*> pure x  =  pure (\f -> f x) <*> u`
+- **Interchange**: for all `u` and `x`, `u <*> pure x  =  pure (\f -> f x) <*> u`
   (i.e., `pure` really creates pure computations, in the sense that pure
   computations commute with any other computation)
 
@@ -1038,6 +1038,44 @@ instance? If so, what is it? If not, why not?
 "Hitler reacts to functional programming". [Link](https://youtu.be/ADqLBc1vFw).
 
 
+# Functors
+
+As we saw back in the `contains'xyz'` example with the `haveSeen'xyz'` action,
+sometimes we want to change the *value* of a computation without touching the
+*effects*. We even created a function that does this for the `State s` effect,
+namely `map`:
+```Haskell
+map :: (a -> b) -> State s a -> State s b
+```
+As we will see, `map`-like operations are very useful, and whenever we find a
+useful abstraction, we often benefit from codifying it as a type class. In this
+case, we define `Functor`:
+```Haskell
+class Functor f where
+   (<$>) :: (a -> b) -> f a -> f b
+```
+Following the pattern of `Monad` and `Applicative`, we assign map a symbolic
+name "`<$>`", but we can also define an alphabetic alias:
+```Haskell
+map :: Functor f => (a -> b) -> f a -> f b
+map = (<$>)
+```
+
+Informally, `Functor`s represent containers of values, and mapping a function
+`g :: a -> b` over an element `x :: f a` of a functor (i.e., `g <$> x`) changes
+the value(s) inside the container without affecting the structure of the
+container. We capture this idea with the following laws:
+- **Identity**: `map id  =  id`
+- **Composition**: for all `f` and `g`, `map (f . g)  =  map f . map g`
+
+### Exercise: Applicative Functors are Functors
+
+Implement `(<$>)` using `pure` and `<*>`.
+
+**Optional**: Also, prove that the applicative functor laws imply the functor
+laws, proving that applicative functors (in particular, monads) are functors.
+
+
 # References
 
 [1] Rich Hickey, "Simple Made Easy", Strange Loop 2011.
@@ -1088,21 +1126,7 @@ Like monad transformers, but dumbed down a bit.
 
 ## Functors
 
-```Haskell
-class Functor f where
-   map :: (a -> b) -> f a -> f b
-```
-- **Identity**: `map id = id`
-- **Composition**: `map (f . g) = map f . map g`
-
 Data structures examples
-
-### Exercise ?: Applicative Functors are Functors
-
-Implement `map` using `pure` and `<*>`.
-
-**Optional**: Also, prove that the applicative functor laws imply the functor
-laws, proving that applicative functions (in particular, monads) are functors.
 
 ### Exercise ?: A Symmetric Representation of Applicative Functors
 
@@ -1136,9 +1160,10 @@ Example: parsing
 ## `Functor`, `Applicative`, `Monad`: Function Application With a Twist
 
 ```Haskell
-     (<$>) :: Functor f     =>   (a ->   b) -> f a -> f b
-     (<*>) :: Applicative f => f (a ->   b) -> f a -> f b
-flip (>>=) :: Monad f       =>   (a -> f b) -> f a -> f b
+  ($) ::                    (a ->   b) ->   a ->   b
+(<$>) :: Functor f     =>   (a ->   b) -> f a -> f b
+(<*>) :: Applicative f => f (a ->   b) -> f a -> f b
+(=<<) :: Monad f       =>   (a -> f b) -> f a -> f b
 ```
 
 ### Exercise: `flap`
