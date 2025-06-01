@@ -48,7 +48,7 @@ https://youtu.be/W2tWOdzgXHA
 ### Transform
 <details open>
    <summary>Transforms preserve the dimension of array.</summary>
-   
+
 |               | Type Signature                   | Len | Composition           | Subcategory | Parallel |
 | ------------- | -------------------------------- | --- | --------------------- | ----------- | -------- |
 | Map           | (a → b) → a[] → b[]              | n   |                       | Map         | 1        |
@@ -70,9 +70,9 @@ https://youtu.be/W2tWOdzgXHA
 
 </details>
 
-#### Transform Exercise 1
-[1089. Duplicate Zeros](https://leetcode.com/problems/duplicate-zeros/)
-The problem says to mutate the input, so solve using a pure function and copy the results over:
+### Transform Exercises
+#### [1089. Duplicate Zeros](https://leetcode.com/problems/duplicate-zeros/)
+The problem says to mutate the input, so if solving on Leetcode, use a pure function and copy the results over:
 ```ts
 const xs2 = duplicateZeros(xs)
 for (let i=0; i < xs.length; i++) {
@@ -80,9 +80,7 @@ for (let i=0; i < xs.length; i++) {
 }
 ```
 
-<details open>
-   <summary>Transform Exercise 2</summary>
-   
+#### Charged Particle Movement
 A list contains 2 types of particles: positive '+' or negative '-'. We select one index 'p' as the anchor point. Write code to gather all negative charges around the anchor point, while pushing the positive charges away. Charges may not cross over the anchor point. Your solution should be linear in time complexity.
 ```
 example input list:
@@ -97,8 +95,23 @@ output for each index:
 [+, +, -, -, -, -, +], p=6
 [+, +, +, -, -, -, -], p=7
 ```
-   
-</details>
+
+#### Robot Cleaner
+A room exists on a cartesian plane, with dirty areas represented as points on the plane. Pathfind a robot cleaner through a room, starting from point `[1, 1]`. Move to points in the order given.
+1. Output 'W' or 'E' for horizontal movement
+2. Output 'N' or 'S' for vertical movement
+3. Output 'C' when the robot cleans.
+4. Output a space between each character.
+```
+sample input text:
+`[2, 4]
+[1, 3]
+[4, 1]
+[3, 2]
+`
+output:
+`E N N N C W S C E E E S S C W N C`
+```
 
 ### Reduction
 Ken Iverson coined `Reduce` in his 1962 book "A Programming Language", which introduced Iversonian Notation and inspired [APL](https://aplwiki.com/wiki/Simple_examples). APL is the subject of his Turing award paper "[Notation as a Tool of Thought](https://www.eecg.utoronto.ca/~jzhu/csc326/readings/iverson.pdf)". In the context of arrays, `Reduce` reduces one axis of an N-dimensional array, yielding an (N-1) dimensional array (or scalar). For now we'll only consider arrays, but in general, `Reduce` reduces a foldable data structure to a summary value one element at a time. We classify reductions by the binary function used, called a *reducer* or *folder*.
@@ -198,9 +211,8 @@ input |> Array.map Array.sum
 
 </details>
 
-<details open>
-   <summary>Reduction Exercise 1</summary>
-
+### Reduction Exercises
+#### Largest Team
 We have several teams of people, each defined as a list of team member names. Write code that returns the size of the largest team.
 ```
 // example 1
@@ -212,25 +224,19 @@ input [["alice", "bob", "charlie"]]
 output: 3
 ```
 
-</details>
-
-#### Reduction Exercise 2
-[3. Longest Substring](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
-
+#### [3. Longest Substring](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
 <details>
     <summary>**Hint**</summary>
     Try Scan then Reduce.
 </details>
 
-#### Reduction Exercise 3
-[42. Trapping Rainwater](https://leetcode.com/problems/trapping-rain-water/)
+#### [42. Trapping Rainwater](https://leetcode.com/problems/trapping-rain-water/)
 <details>
     <summary>**Hint**</summary>
     You need at least 2 passes over the array (forward and back). Remember that Scan returns a longer array than the input.
 </details>
 
-#### Reduction Exercise 4
-[2016. Maximum Difference Between Increasing Elements](https://leetcode.com/problems/maximum-difference-between-increasing-elements/description/)
+#### [2016. Maximum Difference Between Increasing Elements](https://leetcode.com/problems/maximum-difference-between-increasing-elements/description/)
 
 #### Reduction Videos
 ```
@@ -246,7 +252,7 @@ https://youtu.be/8ynsN4nJxzU
 ### Expansion / Unfold
 <details open>
    <summary>Expansions are the opposite of reductions.</summary>
-   
+
 |              | Type Signature            |
 | ------------ | ------------------------- |
 | Init         | int → (int → a) → a[]     |
@@ -254,12 +260,11 @@ https://youtu.be/8ynsN4nJxzU
 | OuterProduct | a[] → b[] → (a * b)[][]   |
 | Range        | int → int → int[]         |
 | Replicate    | int → a → a[]             |
-   
+
 </details>
 
-<details open>
-   <summary>Expansion Exercise</summary>
-   
+### Expansion Exercises
+#### Change on Fiscal Month
 We make 1 dollar per month, increasing to 2 dollars per month starting in March. Given a fiscal year start month (numeric, 1-indexed) as input, return an array of our income for each month.
 ```
 // example 1
@@ -274,8 +279,6 @@ output: [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
 input: 4// April
 output: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2]
 ```
-   
-</details>
 
 ## Specialization
 Projection is a common specialization, denoted by `<name>By`. For example:
