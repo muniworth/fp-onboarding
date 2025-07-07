@@ -116,12 +116,12 @@ output:
 ### Reduction
 Ken Iverson coined `Reduce` in his 1962 book "A Programming Language", which introduced Iversonian Notation and inspired [APL](https://aplwiki.com/wiki/Simple_examples). APL is the subject of his Turing award paper "[Notation as a Tool of Thought](https://www.eecg.utoronto.ca/~jzhu/csc326/readings/iverson.pdf)". In the context of arrays, `Reduce` reduces one axis of an N-dimensional array, yielding an (N-1) dimensional array (or scalar). For now we'll only consider arrays, but in general, `Reduce` reduces a foldable data structure to a summary value one element at a time. We classify reductions by the binary function used, called a *reducer* or *folder*.
 
-|        | Direction     | Operator  | Initial Value | Type Signature            |
-| ------ | ------------- | --------- | ------------- | ------------------------- |
-| Reduce | Associative   | Monoid    | No            | (A → A → A) → A[] → A     |
-| Seduce | Associative   | Semigroup | Yes           | (A → A → A) → A → A[] → A |
-| FoldL  | Left-to-Right | Binary    | Yes           | (B → A → B) → B → A[] → B |
-| FoldR  | Right-to-Left | Binary    | Yes           | (A → B → B) → B → A[] → B |
+|        | Direction     | Operator  | Initial Value | Type Signature                  |
+| ------ | ------------- | --------- | ------------- | ------------------------------- |
+| Reduce | Associative   | Monoid    | No            | (A → A → A) → A[] → A           |
+| Seduce | Associative   | Semigroup | No            | (A → A → A) → non-empty A[] → A |
+| FoldL  | Left-to-Right | Binary    | Yes           | (B → A → B) → B → A[] → B       |
+| FoldR  | Right-to-Left | Binary    | Yes           | (A → B → B) → B → A[] → B       |
 
 A **semigroup** is pairing of a data type with an associative binary operator on that type.
 
