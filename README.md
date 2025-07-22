@@ -175,7 +175,7 @@ Language implementations of reduce/fold vary significantly, and many use a singl
 | Last           | a::a[] → a                       |                         |
 | HeadEmpty      | a[] → a Option                   |                         |
 | LastEmpty      | a[] → a Option                   |                         |
-| Count          | a[] -> int                       | Foldr (K (+1)) 0        |
+| Count          | a[] -> int                       | Map (K 1) >> Reduce (+) |
 | Sum            | float[] -> float                 | Reduce (+)              |
 
 </details>
