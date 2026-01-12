@@ -1,16 +1,12 @@
-[Functional Programming](#functional-programming)
-
 [Algorithm Intuition](#algorithm-intuition)
+
+[Functional Programming](#functional-programming)
 
 [Onion Architecture](#onion-architecture)
 
 [Domain Driven Design](#domain-driven-design)
 
 [And Beyond](#and-beyond)
-
-# Functional Programming
-[Functional Programming](3_Functional_Programming.md)
-TODO inline
 
 # Algorithm Intuition
 Most developers solve problems by declaring temporary variables, an anti-pattern Venkat Subramaniam calls [Primitive Obession](https://youtu.be/znZlF4uQBN0?t=1047), then writing logic step-by-step inside loops. It's easier to break a problem into composable sub-problems if you follow a rigorous step-by-step approach:
@@ -37,7 +33,7 @@ input |> Array.map Array.sum
 
 ## Intro Video
 > [!IMPORTANT]
-> Watch the first 34 minutes
+> Watch the first 26 minutes
 ```
 "C++ Seasoning -- Know Your Algorithms"
 - Sean Parent, 2013
@@ -371,6 +367,9 @@ output: 2
 - Conor Hoekstra (Code Report), Meeting C++ 2019
 https://youtu.be/TSZzvo4htTQ
 ```
+
+# Functional Programming
+[link](https://github.com/muniworth/fp-onboarding/tree/main/FunctionalProgramming)
 
 # Onion Architecture
 aliases: pure architecture, hexagonal architecture, ports and adapters
